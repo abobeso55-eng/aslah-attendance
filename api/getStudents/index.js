@@ -1,4 +1,4 @@
-const className = req.query.class;
+const classname = req.query.class;
 
 module.exports = async function (context, req) {
 
@@ -17,10 +17,9 @@ module.exports = async function (context, req) {
         // الاتصال بقاعدة البيانات
         await sql.connect(config);
 
-        // جلب الفصل من رابط الاستعلام (query string)
+        // جلب الفصل من الرابط ?class=
         const className = req.query.class;
 
-        // استعلام SQL
         let query = "SELECT Id, Name, Class FROM Students";
         let request = new sql.Request();
 
@@ -31,7 +30,6 @@ module.exports = async function (context, req) {
 
         const result = await request.query(query);
 
-        // الإرجاع
         context.res = {
             status: 200,
             body: result.recordset
@@ -41,7 +39,10 @@ module.exports = async function (context, req) {
         context.log("DB ERROR:", error);
         context.res = {
             status: 500,
-            body: { error: "Database error", details: error.message }
+            body: {
+                error: "Database error",
+                details: error.message
+            }
         };
     }
 };
