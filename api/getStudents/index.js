@@ -1,4 +1,4 @@
-const className = req.query.class;
+const sql = require("mssql");
 
 module.exports = async function (context, req) {
 
@@ -14,10 +14,13 @@ module.exports = async function (context, req) {
     };
 
     try {
+        // الاتصال بقاعدة البيانات
         await sql.connect(config);
 
+        // جلب الفصل من رابط الاستعلام (query string)
         const className = req.query.class;
 
+        // استعلام SQL
         let query = "SELECT Id, Name, Class FROM Students";
         let request = new sql.Request();
 
@@ -28,6 +31,7 @@ module.exports = async function (context, req) {
 
         const result = await request.query(query);
 
+        // الإرجاع
         context.res = {
             status: 200,
             body: result.recordset
