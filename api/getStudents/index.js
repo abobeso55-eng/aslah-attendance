@@ -1,6 +1,6 @@
-const className = req.query.class;
+const sql = require("mssql");
 
-module.exports = async function (context, req)  
+module.exports = async function (context, req) {
 
     const config = {
         user: process.env.DB_USER,
@@ -16,7 +16,7 @@ module.exports = async function (context, req)
     try {
         await sql.connect(config);
 
-        const className = req.query.class;
+        const className = req.query.class;  // ✅ هنا مكانه الصحيح
 
         let query = "SELECT Id, Name, Class FROM Students";
         let request = new sql.Request();
@@ -44,3 +44,4 @@ module.exports = async function (context, req)
         };
     }
 };
+``
