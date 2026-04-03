@@ -1,6 +1,6 @@
 const sql = require("mssql");
 
-module.exports = async function (context, req) {
+module.exports = async function (context, req) 
 
     const config = {
         user: process.env.DB_USER,
