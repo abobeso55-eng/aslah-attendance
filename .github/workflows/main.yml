@@ -24,9 +24,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
 
-          app_location: "/"       # موقع ملفات HTML
-          api_location: "api"     # ✅ أهم خطوة
-          output_location: "/"    # مجلد الإخراج (غير مهم هنا)
+          app_location: "/"        # ملفات الواجهة
+          api_location: "api"      # ✅ أهم شيء: مكان الـ API
+          output_location: "/"     # لا نستخدمه هنا
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
