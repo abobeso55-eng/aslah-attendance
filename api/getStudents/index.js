@@ -14,13 +14,10 @@ module.exports = async function (context, req) {
     };
 
     try {
-        // الاتصال بقاعدة البيانات
         await sql.connect(config);
 
-        // قراءة اسم الفصل من رابط الاستعلام
         const className = req.query.class;
 
-        // استعلام SQL
         let query = "SELECT Id, Name, Class FROM Students";
         let request = new sql.Request();
 
@@ -29,10 +26,8 @@ module.exports = async function (context, req) {
             request.input("class", sql.NVarChar, className);
         }
 
-        // تنفيذ الاستعلام
         const result = await request.query(query);
 
-        // إرجاع البيانات
         context.res = {
             status: 200,
             body: result.recordset
