@@ -1,4 +1,4 @@
-const sql = require("mssql");
+const className = req.query.class;
 
 module.exports = async function (context, req) {
 
