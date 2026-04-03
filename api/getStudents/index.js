@@ -18,7 +18,7 @@ module.exports = async function (context, req)
 
         const className = req.query.class;
 
-        let query = "SELECT Id, Name, Class FROM Students";
+       let query = "SELECT Id, Name, Class FROM Students";
         let request = new sql.Request();
 
         if (className) {
