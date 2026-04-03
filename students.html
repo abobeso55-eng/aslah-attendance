@@ -1,1 +1,249 @@
-<html><body><h1>Students Page</h1></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلاب</title>
+
+    <style>
+        body {
+            background: #f2f5f4;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #2c3e50;
+            display: flex;
+        }
+
+        /* الشريط الجانبي */
+        .sidebar {
+            width: 260px;
+            background: #27ae60;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .class-item {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .class-item:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .active {
+            background: white;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        /* المنطقة الرئيسية */
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1d8a4d;
+        }
+
+        /* صندوق إضافة طالب */
+        .add-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-box input {
+            padding: 12px;
+            width: 300px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #1d8a4d;
+        }
+
+        .excel-btn {
+            background: #2c3e50;
+        }
+
+        .excel-btn:hover {
+            background: #000;
+        }
+
+        /* قائمة الطلاب */
+        .student-row {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            padding: 6px 12px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- الشريط الجانبي -->
+<div class="sidebar">
+    <h2>الفصول</h2>
+    <div id="classesList"></div>
+</div>
+
+<!-- المحتوى الرئيسي -->
+<div class="content">
+
+    <h2 id="selectedClassTitle">اختر فصلًا</h2>
+
+    <!-- إضافة طالب -->
+    <div class="add-box">
+        <input type="text" id="studentName" placeholder="اسم الطالب">
+        <button class="btn" onclick="addStudent()">➕ إضافة طالب</button>
+        <button class="btn excel-btn" onclick="uploadExcel()">📥 رفع Excel</button>
+        <input type="file" id="excelInput" hidden accept=".xlsx" onchange="importExcel(this)">
+    </div>
+
+    <!-- قائمة الطلاب -->
+    <div id="studentsList"></div>
+
+</div>
+
+<script>
+/* قائمة الفصول */
+const classes = [
+    "أول متوسط (أ)",
+    "أول متوسط (ب)",
+    "أول متوسط (ج)",
+    "ثاني متوسط (أ)",
+    "ثاني متوسط (ب)",
+    "ثالث متوسط (أ)",
+    "ثالث متوسط (ب)"
+];
+
+let selectedClass = null;
+
+/* عرض الفصول */
+const clsList = document.getElementById("classesList");
+classes.forEach(cls => {
+    const div = document.createElement("div");
+    div.className = "class-item";
+    div.innerText = cls;
+    div.onclick = () => selectClass(cls, div);
+    clsList.appendChild(div);
+});
+
+/* بيانات تجريبية — لاحقًا تكون من SQL */
+let schoolData = {
+    "أول متوسط (أ)": ["أحمد", "سالم", "محمد"],
+    "أول متوسط (ب)": ["خالد", "طارق"],
+    "أول متوسط (ج)": ["فهد"],
+    "ثاني متوسط (أ)": [],
+    "ثاني متوسط (ب)": [],
+    "ثالث متوسط (أ)": [],
+    "ثالث متوسط (ب)": []
+};
+
+/* عند اختيار فصل */
+function selectClass(cls, element) {
+    selectedClass = cls;
+
+    // تلوين العنصر المحدد
+    document.querySelectorAll(".class-item").forEach(i => i.classList.remove("active"));
+    element.classList.add("active");
+
+    // عنوان الفصل
+    document.getElementById("selectedClassTitle").innerText = "الفصل: " + cls;
+
+    renderStudents();
+}
+
+/* عرض الطلاب */
+function renderStudents() {
+    const list = document.getElementById("studentsList");
+    list.innerHTML = "";
+
+    const students = schoolData[selectedClass];
+
+    students.forEach((name, index) => {
+        const row = document.createElement("div");
+        row.className = "student-row";
+
+        row.innerHTML = `
+            <span>${name}</span>
+            <button class="delete-btn" onclick="deleteStudent(${index})">حذف</button>
+        `;
+
+        list.appendChild(row);
+    });
+}
+
+/* إضافة طالب */
+function addStudent() {
+    if (!selectedClass) return alert("اختر الفصل أولاً");
+    const name = document.getElementById("studentName").value.trim();
+    if (name === "") return alert("اكتب اسم الطالب");
+
+    schoolData[selectedClass].push(name);
+    document.getElementById("studentName").value = "";
+    renderStudents();
+}
+
+/* حذف طالب */
+function deleteStudent(index) {
+    schoolData[selectedClass].splice(index, 1);
+    renderStudents();
+}
+
+/* رفع Excel */
+function uploadExcel() {
+    document.getElementById("excelInput").click();
+}
+
+function importExcel(input) {
+    alert("📌 هذه ميزة جاهزة وسيتم ربطها بقاعدة SQL لاحقًا!");
+}
+</script>
+
+</body>
+</html>
+``
