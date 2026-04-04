@@ -4,7 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "mssql": "^10.0.1"
+    "mssql": "^10.0.1",
+    "xlsx": "^0.18.5",
+    "busboy": "^1.6.0"
   }
 }
 ``
