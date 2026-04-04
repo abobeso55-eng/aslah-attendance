@@ -1,9 +1,8 @@
 {
   "name": "aslah-api",
   "version": "1.0.0",
-  "description": "API for Excel upload and SQL access",
+  "description": "API for SQL + Excel",
   "main": "index.js",
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "mssql": "^10.0.1",
@@ -11,4 +10,3 @@
     "busboy": "^1.6.0"
   }
 }
-``
