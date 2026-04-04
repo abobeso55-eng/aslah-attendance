@@ -7,6 +7,41 @@
 
     <style>
         body {
+            <hr>
+
+<h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
+
+<input type="file" id="excelFile" accept=".xlsx" />
+<br><br>
+<button onclick="uploadExcel()">رفع الملف</button>
+
+<script>
+async function uploadExcel() {
+    const fileInput = document.getElementById("excelFile");
+
+    if (!fileInput.files.length) {
+        alert("الرجاء اختيار ملف Excel أولاً");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+        const response = await fetch("/api/uploadStudentsExcel", {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+        alert(result.message || "تم الرفع");
+
+    } catch (err) {
+        alert("حدث خطأ أثناء رفع الملف");
+        console.error(err);
+    }
+}
+</script>
             background: #f2f5f4;
             font-family: 'Cairo', sans-serif;
             margin: 0;
