@@ -2,46 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الطلاب</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
-            <hr>
-
-<h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
-
-<input type="file" id="excelFile" accept=".xlsx" />
-<br><br>
-<button onclick="uploadExcel()">رفع الملف</button>
-
-<script>
-async function uploadExcel() {
-    const fileInput = document.getElementById("excelFile");
-
-    if (!fileInput.files.length) {
-        alert("الرجاء اختيار ملف Excel أولاً");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    try {
-        const response = await fetch("/api/uploadStudentsExcel", {
-            method: "POST",
-            body: formData
-        });
-
-        const result = await response.json();
-        alert(result.message || "تم الرفع");
-
-    } catch (err) {
-        alert("حدث خطأ أثناء رفع الملف");
-        console.error(err);
-    }
-}
-</script>
             background: #f2f5f4;
             font-family: 'Cairo', sans-serif;
             margin: 0;
@@ -73,7 +38,6 @@ async function uploadExcel() {
             margin-bottom: 10px;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .class-item:hover {
@@ -86,73 +50,44 @@ async function uploadExcel() {
             font-weight: bold;
         }
 
-        /* المنطقة الرئيسية */
+        /* المحتوى */
         .content {
             flex-grow: 1;
             padding: 30px;
         }
 
         h2 {
-            margin-top: 0;
             color: #1d8a4d;
         }
 
-        /* صندوق إضافة طالب */
-        .add-box {
-            display: flex;
-            gap: 10px;
+        .upload-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .add-box input {
-            padding: 12px;
-            width: 300px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-
-        .btn {
+        .upload-box button {
             padding: 12px 20px;
             background: #27ae60;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 700;
-            transition: 0.2s;
+            font-weight: bold;
         }
 
-        .btn:hover {
+        .upload-box button:hover {
             background: #1d8a4d;
         }
 
-        .excel-btn {
-            background: #2c3e50;
-        }
-
-        .excel-btn:hover {
-            background: #000;
-        }
-
-        /* قائمة الطلاب */
         .student-row {
             background: white;
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .delete-btn {
-            background: #e74c3c;
-            padding: 6px 12px;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
         }
     </style>
 </head>
@@ -170,12 +105,12 @@ async function uploadExcel() {
 
     <h2 id="selectedClassTitle">اختر فصلًا</h2>
 
-    <!-- إضافة طالب -->
-    <div class="add-box">
-        <input type="text" id="studentName" placeholder="اسم الطالب">
-        <button class="btn" onclick="addStudent()">➕ إضافة طالب</button>
-        <button class="btn excel-btn" onclick="uploadExcel()">📥 رفع Excel</button>
-        <input type="file" id="excelInput" hidden accept=".xlsx" onchange="importExcel(this)">
+    <!-- رفع ملف Excel -->
+    <div class="upload-box">
+        <h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
+        <input type="file" id="excelFile" accept=".xlsx">
+        <br><br>
+        <button onclick="uploadExcel()">رفع الملف</button>
     </div>
 
     <!-- قائمة الطلاب -->
@@ -207,79 +142,57 @@ classes.forEach(cls => {
     clsList.appendChild(div);
 });
 
-/* بيانات تجريبية — لاحقًا تكون من SQL */
-let schoolData = {
-    "أول متوسط (أ)": ["أحمد", "سالم", "محمد"],
-    "أول متوسط (ب)": ["خالد", "طارق"],
-    "أول متوسط (ج)": ["فهد"],
-    "ثاني متوسط (أ)": [],
-    "ثاني متوسط (ب)": [],
-    "ثالث متوسط (أ)": [],
-    "ثالث متوسط (ب)": []
-};
-
-/* عند اختيار فصل */
 function selectClass(cls, element) {
     selectedClass = cls;
-
-    // تلوين العنصر المحدد
     document.querySelectorAll(".class-item").forEach(i => i.classList.remove("active"));
     element.classList.add("active");
-
-    // عنوان الفصل
     document.getElementById("selectedClassTitle").innerText = "الفصل: " + cls;
-
-    renderStudents();
+    loadStudents();
 }
 
-/* عرض الطلاب */
-function renderStudents() {
+/* تحميل الطلاب من قاعدة البيانات */
+async function loadStudents() {
+    if (!selectedClass) return;
+
+    const res = await fetch(`/api/getStudents?class=${encodeURIComponent(selectedClass)}`);
+    const students = await res.json();
+
     const list = document.getElementById("studentsList");
     list.innerHTML = "";
 
-    const students = schoolData[selectedClass];
-
-    students.forEach((name, index) => {
+    students.forEach(s => {
         const row = document.createElement("div");
         row.className = "student-row";
-
-        row.innerHTML = `
-            <span>${name}</span>
-            <button class="delete-btn" onclick="deleteStudent(${index})">حذف</button>
-        `;
-
+        row.innerText = s.Name;
         list.appendChild(row);
     });
 }
 
-/* إضافة طالب */
-function addStudent() {
-    if (!selectedClass) return alert("اختر الفصل أولاً");
-    const name = document.getElementById("studentName").value.trim();
-    if (name === "") return alert("اكتب اسم الطالب");
+/* رفع ملف Excel */
+async function uploadExcel() {
+    const fileInput = document.getElementById("excelFile");
 
-    schoolData[selectedClass].push(name);
-    document.getElementById("studentName").value = "";
-    renderStudents();
-}
+    if (!fileInput.files.length) {
+        alert("الرجاء اختيار ملف Excel");
+        return;
+    }
 
-/* حذف طالب */
-function deleteStudent(index) {
-    schoolData[selectedClass].splice(index, 1);
-    renderStudents();
-}
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
 
-/* رفع Excel */
-function uploadExcel() {
-    document.getElementById("excelInput").click();
-}
+    const res = await fetch("/api/uploadStudentsExcel", {
+        method: "POST",
+        body: formData
+    });
 
-function importExcel(input) {
-    alert("📌 هذه ميزة جاهزة وسيتم ربطها بقاعدة SQL لاحقًا!");
+    const result = await res.json();
+    alert(result.message || "تم");
+
+    if (selectedClass) {
+        loadStudents();
+    }
 }
 </script>
 
 </body>
 </html>
-``
-
