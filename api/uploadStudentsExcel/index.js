@@ -66,4 +66,3 @@ module.exports = async function (context, req) {
 
   req.pipe(busboy);
 };
-``
