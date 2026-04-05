@@ -19,6 +19,11 @@ module.exports = async function (context, req) {
 
   busboy.on("finish", async () => {
     try {
+      if (fileBuffer.length === 0) {
+        context.res = { status: 400, body: { error: "ملف غير صالح" } };
+        return;
+      }
+
       const workbook = XLSX.read(fileBuffer, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet);
@@ -28,7 +33,7 @@ module.exports = async function (context, req) {
         password: process.env.DB_PASSWORD,
         server: process.env.DB_SERVER,
         database: process.env.DB_NAME,
-        options: { encrypt: true }
+        options: { encrypt: true, trustServerCertificate: false }
       };
 
       await sql.connect(config);
@@ -51,7 +56,7 @@ module.exports = async function (context, req) {
       };
 
     } catch (err) {
-      context.log(err);
+      context.log("ERROR:", err);
       context.res = {
         status: 500,
         body: { error: err.message }
@@ -61,3 +66,4 @@ module.exports = async function (context, req) {
 
   req.pipe(busboy);
 };
+``
