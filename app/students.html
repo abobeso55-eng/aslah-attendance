@@ -22,7 +22,7 @@
             color: white;
             height: 100vh;
             padding: 20px;
-            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 3px 0 10px rgba(0,0,0,0.2);
         }
 
         .sidebar h2 {
@@ -31,10 +31,20 @@
 
         .class-item {
             padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             margin-bottom: 10px;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        .class-item:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .active {
+            background: white !important;
+            color: #27ae60 !important;
+            font-weight: bold;
         }
 
         .content {
@@ -50,11 +60,26 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .upload-box button {
+            padding: 12px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .upload-box button:hover {
+            background: #1d8a4d;
+        }
+
         .student-row {
             background: white;
             margin-bottom: 10px;
             padding: 15px;
             border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -81,9 +106,13 @@
 
     <script>
         const classes = [
-            "أول متوسط (أ)", "أول متوسط (ب)", "أول متوسط (ج)",
-            "ثاني متوسط (أ)", "ثاني متوسط (ب)",
-            "ثالث متوسط (أ)", "ثالث متوسط (ب)"
+            "أول متوسط (أ)",
+            "أول متوسط (ب)",
+            "أول متوسط (ج)",
+            "ثاني متوسط (أ)",
+            "ثاني متوسط (ب)",
+            "ثالث متوسط (أ)",
+            "ثالث متوسط (ب)"
         ];
 
         let selectedClass = null;
@@ -100,5 +129,59 @@
 
         function selectClass(cls, element) {
             selectedClass = cls;
-            document.querySelectorAll(".class-item").forEach(i => i.style.background = "");
-           
+
+            document.querySelectorAll(".class-item").forEach(x => x.classList.remove("active"));
+            element.classList.add("active");
+
+            document.getElementById("selectedClassTitle").innerText = "الفصل: " + cls;
+            loadStudents();
+        }
+
+        async function loadStudents() {
+            if (!selectedClass) return;
+
+            const response = await fetch(`/api/getStudents?class=${encodeURIComponent(selectedClass)}`);
+            const data = await response.json();
+
+            const list = document.getElementById("studentsList");
+            list.innerHTML = "";
+
+            data.forEach(s => {
+                const row = document.createElement("div");
+                row.className = "student-row";
+                row.innerText = s.Name;
+                list.appendChild(row);
+            });
+        }
+
+        async function uploadExcel() {
+            const fileInput = document.getElementById("excelFile");
+
+            if (!fileInput.files.length) {
+                alert("الرجاء اختيار ملف Excel أولاً");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const res = await fetch("/api/uploadStudentsExcel", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await res.json();
+                alert(result.message || "تم رفع الملف");
+
+                if (selectedClass) loadStudents();
+
+            } catch (e) {
+                alert("حدث خطأ أثناء رفع الملف");
+                console.log(e);
+            }
+        }
+    </script>
+
+</body>
+</html>
