@@ -1,9 +1,9 @@
 {
   "name": "aslah-api",
   "version": "1.0.0",
-  "description": "API for SQL + Excel",
-  "main": "index.js",
-  "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "mssql": "^10.0.1",
     "xlsx": "^0.18.5",
