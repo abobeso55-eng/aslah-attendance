@@ -150,7 +150,7 @@ function selectClass(cls, element) {
     loadStudents();
 }
 
-/* تحميل الطلاب من قاعدة البيانات */
+/* تحميل الطلاب من SQL */
 async function loadStudents() {
     if (!selectedClass) return;
 
@@ -168,28 +168,33 @@ async function loadStudents() {
     });
 }
 
-/* رفع ملف Excel */
+/* رفع ملف Excel إلى API */
 async function uploadExcel() {
     const fileInput = document.getElementById("excelFile");
 
     if (!fileInput.files.length) {
-        alert("الرجاء اختيار ملف Excel");
+        alert("الرجاء اختيار ملف Excel أولاً");
         return;
     }
 
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
 
-    const res = await fetch("/api/uploadStudentsExcel", {
-        method: "POST",
-        body: formData
-    });
+    try {
+        const res = await fetch("/api/uploadStudentsExcel", {
+            method: "POST",
+            body: formData
+        });
 
-    const result = await res.json();
-    alert(result.message || "تم");
+        const result = await res.json();
+        alert(result.message || "تم");
 
-    if (selectedClass) {
-        loadStudents();
+        if (selectedClass) {
+            loadStudents();
+        }
+    } catch (e) {
+        alert("حدث خطأ أثناء رفع الملف");
+        console.log(e);
     }
 }
 </script>
