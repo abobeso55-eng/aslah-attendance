@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <title>إدارة الطلاب</title>
@@ -15,189 +16,89 @@
             display: flex;
         }
 
-        /* الشريط الجانبي */
         .sidebar {
             width: 260px;
             background: #27ae60;
             color: white;
             height: 100vh;
             padding: 20px;
-            box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
         }
 
         .sidebar h2 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
             text-align: center;
         }
 
         .class-item {
             padding: 12px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             margin-bottom: 10px;
             border-radius: 8px;
             cursor: pointer;
         }
 
-        .class-item:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .active {
-            background: white;
-            color: #27ae60;
-            font-weight: bold;
-        }
-
-        /* المحتوى */
         .content {
             flex-grow: 1;
             padding: 30px;
         }
 
-        h2 {
-            color: #1d8a4d;
-        }
-
         .upload-box {
             background: white;
             padding: 20px;
-            border-radius: 12px;
             margin-bottom: 20px;
+            border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .upload-box button {
-            padding: 12px 20px;
-            background: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .upload-box button:hover {
-            background: #1d8a4d;
         }
 
         .student-row {
             background: white;
-            padding: 15px;
             margin-bottom: 10px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
         }
     </style>
 </head>
 
 <body>
 
-<!-- الشريط الجانبي -->
-<div class="sidebar">
-    <h2>الفصول</h2>
-    <div id="classesList"></div>
-</div>
-
-<!-- المحتوى الرئيسي -->
-<div class="content">
-
-    <h2 id="selectedClassTitle">اختر فصلًا</h2>
-
-    <!-- رفع ملف Excel -->
-    <div class="upload-box">
-        <h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
-        <input type="file" id="excelFile" accept=".xlsx">
-        <br><br>
-        <button onclick="uploadExcel()">رفع الملف</button>
+    <div class="sidebar">
+        <h2>الفصول</h2>
+        <div id="classesList"></div>
     </div>
 
-    <!-- قائمة الطلاب -->
-    <div id="studentsList"></div>
+    <div class="content">
+        <h2 id="selectedClassTitle">اختر فصلًا</h2>
 
-</div>
+        <div class="upload-box">
+            <h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
+            <input type="file" id="excelFile" accept=".xlsx">
+            <br><br>
+            <button onclick="uploadExcel()">رفع الملف</button>
+        </div>
 
-<script>
-/* قائمة الفصول */
-const classes = [
-    "أول متوسط (أ)",
-    "أول متوسط (ب)",
-    "أول متوسط (ج)",
-    "ثاني متوسط (أ)",
-    "ثاني متوسط (ب)",
-    "ثالث متوسط (أ)",
-    "ثالث متوسط (ب)"
-];
+        <div id="studentsList"></div>
+    </div>
 
-let selectedClass = null;
+    <script>
+        const classes = [
+            "أول متوسط (أ)", "أول متوسط (ب)", "أول متوسط (ج)",
+            "ثاني متوسط (أ)", "ثاني متوسط (ب)",
+            "ثالث متوسط (أ)", "ثالث متوسط (ب)"
+        ];
 
-/* عرض الفصول */
-const clsList = document.getElementById("classesList");
-classes.forEach(cls => {
-    const div = document.createElement("div");
-    div.className = "class-item";
-    div.innerText = cls;
-    div.onclick = () => selectClass(cls, div);
-    clsList.appendChild(div);
-});
+        let selectedClass = null;
 
-function selectClass(cls, element) {
-    selectedClass = cls;
-    document.querySelectorAll(".class-item").forEach(i => i.classList.remove("active"));
-    element.classList.add("active");
-    document.getElementById("selectedClassTitle").innerText = "الفصل: " + cls;
-    loadStudents();
-}
+        const clsList = document.getElementById("classesList");
 
-/* تحميل الطلاب من SQL */
-async function loadStudents() {
-    if (!selectedClass) return;
-
-    const res = await fetch(`/api/getStudents?class=${encodeURIComponent(selectedClass)}`);
-    const students = await res.json();
-
-    const list = document.getElementById("studentsList");
-    list.innerHTML = "";
-
-    students.forEach(s => {
-        const row = document.createElement("div");
-        row.className = "student-row";
-        row.innerText = s.Name;
-        list.appendChild(row);
-    });
-}
-
-/* رفع ملف Excel إلى API */
-async function uploadExcel() {
-    const fileInput = document.getElementById("excelFile");
-
-    if (!fileInput.files.length) {
-        alert("الرجاء اختيار ملف Excel أولاً");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    try {
-        const res = await fetch("/api/uploadStudentsExcel", {
-            method: "POST",
-            body: formData
+        classes.forEach(cls => {
+            const div = document.createElement("div");
+            div.className = "class-item";
+            div.innerText = cls;
+            div.onclick = () => selectClass(cls, div);
+            clsList.appendChild(div);
         });
 
-        const result = await res.json();
-        alert(result.message || "تم");
-
-        if (selectedClass) {
-            loadStudents();
-        }
-    } catch (e) {
-        alert("حدث خطأ أثناء رفع الملف");
-        console.log(e);
-    }
-}
-</script>
-
-</body>
-</html>
+        function selectClass(cls, element) {
+            selectedClass = cls;
+            document.querySelectorAll(".class-item").forEach(i => i.style.background = "");
+           
