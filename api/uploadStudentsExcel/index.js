@@ -36,14 +36,13 @@ module.exports = async function (context, req) {
       for (const row of rows) {
         if (!row["الاسم"] || !row["الفصل"]) continue;
 
-        const request = new sql.Request();
-        request.input("name", sql.NVarChar, row["الاسم"]);
-        request.input("class", sql.NVarChar, row["الفصل"]);
-
-        await request.query(`
-          INSERT INTO Students (Name, Class)
-          VALUES (@name, @class)
-        `);
+        await new sql.Request()
+          .input("name", sql.NVarChar, row["الاسم"])
+          .input("class", sql.NVarChar, row["الفصل"])
+          .query(`
+            INSERT INTO Students (Name, Class)
+            VALUES (@name, @class)
+          `);
       }
 
       context.res = {
@@ -53,7 +52,10 @@ module.exports = async function (context, req) {
 
     } catch (err) {
       context.log(err);
-      context.res = { status: 500, body: { error: "خطأ في معالجة الملف" } };
+      context.res = {
+        status: 500,
+        body: { error: err.message }
+      };
     }
   });
 
