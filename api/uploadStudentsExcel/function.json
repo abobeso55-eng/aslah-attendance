@@ -6,7 +6,8 @@
       "direction": "in",
       "name": "req",
       "methods": ["post"],
-      "route": "uploadStudentsExcel"
+      "route": "uploadStudentsExcel",
+      "dataType": "binary"
     },
     {
       "type": "http",
