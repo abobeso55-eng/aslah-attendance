@@ -80,18 +80,14 @@
     }
 
     .student-row {
-      padding: 10px;
+      padding: 8px;
       border-bottom: 1px solid #eee;
     }
 
-    .student-row:last-child {
-      border-bottom: none;
-    }
-
     .empty {
-      color: #888;
       text-align: center;
-      padding: 20px;
+      color: #888;
+      padding: 15px;
     }
   </style>
 </head>
@@ -101,7 +97,6 @@
   <!-- الشريط الجانبي -->
   <div class="sidebar">
     <h2>الفصول</h2>
-
     <div class="class-item">أول متوسط (أ)</div>
     <div class="class-item">أول متوسط (ب)</div>
     <div class="class-item">أول متوسط (ج)</div>
@@ -113,6 +108,14 @@
 
   <!-- المحتوى -->
   <div class="content">
+
+    <!-- ✅ زر الرفع -->
+    <div class="upload-box">
+      <h3>📤 رفع أسماء الطلاب (سيتم حذف القديم)</h3>
+      <input type="file" id="excelFile" accept=".xlsx">
+      <br><br>
+      <button onclick="uploadExcel()">رفع الملف</button>
+    </div>
 
     <h2 id="title">اختر فصلًا لعرض الطلاب</h2>
 
@@ -139,30 +142,64 @@
     });
   });
 
-  // ✅ تحميل الطلاب حسب الفصل
-  async function loadStudents(className) {
-    studentsList.innerHTML = "<div class='empty'>جاري تحميل الطلاب...</div>";
+  // ✅ رفع ملف Excel (حذف ثم رفع)
+  async function uploadExcel() {
+    const fileInput = document.getElementById("excelFile");
+
+    if (!fileInput.files.length) {
+      alert("اختر ملف Excel أولاً");
+      return;
+    }
+
+    if (!confirm("سيتم حذف جميع الطلاب الحاليين ثم رفع الملف الجديد، هل أنت متأكد؟")) {
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
-      const text = await res.text();
+      const buffer = await fileInput.files[0].arrayBuffer();
 
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        studentsList.innerHTML = "<div class='empty'>خطأ في استجابة الخادم</div>";
-        console.error("Invalid response:", text);
+      const res = await fetch("/api/uploadStudentsExcel", {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: buffer
+      });
+
+      const text = await res.text();
+      const result = JSON.parse(text);
+
+      if (!result.success) {
+        alert(result.error || "فشل الرفع");
         return;
       }
 
-      if (!data.success || !data.students || data.students.length === 0) {
-        studentsList.innerHTML = "<div class='empty'>لا يوجد طلاب في هذا الفصل</div>";
+      alert(
+        "✅ تم رفع الطلاب بنجاح\n" +
+        "عدد الطلاب: " + result.inserted
+      );
+
+      studentsList.innerHTML = "<div class='empty'>اختر فصلًا لعرض الطلاب</div>";
+      title.innerText = "اختر فصلًا لعرض الطلاب";
+
+    } catch (e) {
+      alert("حدث خطأ أثناء الرفع");
+      console.error(e);
+    }
+  }
+
+  // ✅ عرض الطلاب
+  async function loadStudents(className) {
+    studentsList.innerHTML = "<div class='empty'>جاري التحميل...</div>";
+
+    try {
+      const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
+      const data = await res.json();
+
+      if (!data.success || data.students.length === 0) {
+        studentsList.innerHTML = "<div class='empty'>لا يوجد طلاب</div>";
         return;
       }
 
       studentsList.innerHTML = "";
-
       data.students.forEach(s => {
         const div = document.createElement("div");
         div.className = "student-row";
@@ -170,9 +207,8 @@
         studentsList.appendChild(div);
       });
 
-    } catch (err) {
-      studentsList.innerHTML = "<div class='empty'>تعذّر تحميل الطلاب</div>";
-      console.error(err);
+    } catch {
+      studentsList.innerHTML = "<div class='empty'>تعذر تحميل الطلاب</div>";
     }
   }
 </script>
