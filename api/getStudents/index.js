@@ -4,6 +4,7 @@ module.exports = async function (context, req) {
   try {
     const className = req.query.class;
 
+    // التحقق من وجود اسم الفصل
     if (!className) {
       context.res = {
         status: 400,
@@ -16,6 +17,7 @@ module.exports = async function (context, req) {
       return;
     }
 
+    // الاتصال بقاعدة البيانات
     const pool = await sql.connect({
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
@@ -27,15 +29,17 @@ module.exports = async function (context, req) {
       }
     });
 
+    // ✅ التعديل الجذري: DISTINCT لمنع التكرار
     const result = await pool.request()
       .input("class", sql.NVarChar, className)
       .query(`
-        SELECT Name
+        SELECT DISTINCT Name
         FROM Students
         WHERE Class = @class
         ORDER BY Name
       `);
 
+    // إرجاع النتيجة
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
