@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>إدارة الطلاب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       background: #f2f5f4;
-      font-family: Arial;
+      font-family: 'Cairo', Arial, sans-serif;
       margin: 0;
       padding: 0;
       display: flex;
+      color: #2c3e50;
     }
 
     .sidebar {
@@ -19,96 +21,160 @@
       color: white;
       padding: 20px;
       height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .class-item {
+      padding: 12px;
+      background: rgba(255,255,255,0.15);
+      margin-bottom: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .class-item:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .class-item.active {
+      background: #ffffff;
+      color: #27ae60;
+      font-weight: bold;
     }
 
     .content {
       flex-grow: 1;
       padding: 30px;
+      box-sizing: border-box;
     }
 
     .upload-box {
       background: white;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    button {
+    .upload-box button {
       padding: 10px 20px;
       background: #27ae60;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      font-weight: bold;
+    }
+
+    .students-list {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .student-row {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .student-row:last-child {
+      border-bottom: none;
+    }
+
+    .empty {
+      color: #888;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="sidebar">
-  <h3>الفصول</h3>
-  <div>أول متوسط</div>
-  <div>ثاني متوسط</div>
-  <div>ثالث متوسط</div>
-</div>
+  <!-- الشريط الجانبي -->
+  <div class="sidebar">
+    <h2>الفصول</h2>
 
-<div class="content">
-  <h2>رفع أسماء الطلاب</h2>
-
-  <div class="upload-box">
-    <input type="file" id="excelFile" accept=".xlsx">
-    <br><br>
-    <button onclick="uploadExcel()">رفع الملف</button>
+    <div class="class-item">أول متوسط (أ)</div>
+    <div class="class-item">أول متوسط (ب)</div>
+    <div class="class-item">أول متوسط (ج)</div>
+    <div class="class-item">ثاني متوسط (أ)</div>
+    <div class="class-item">ثاني متوسط (ب)</div>
+    <div class="class-item">ثالث متوسط (أ)</div>
+    <div class="class-item">ثالث متوسط (ب)</div>
   </div>
-</div>
+
+  <!-- المحتوى -->
+  <div class="content">
+
+    <h2 id="title">اختر فصلًا لعرض الطلاب</h2>
+
+    <div class="students-list" id="studentsList">
+      <div class="empty">لم يتم اختيار فصل بعد</div>
+    </div>
+
+  </div>
 
 <script>
-async function uploadExcel() {
-  const fileInput = document.getElementById("excelFile");
+  const classItems = document.querySelectorAll(".class-item");
+  const studentsList = document.getElementById("studentsList");
+  const title = document.getElementById("title");
 
-  if (!fileInput.files.length) {
-    alert("اختر ملف Excel أولاً");
-    return;
-  }
+  classItems.forEach(item => {
+    item.addEventListener("click", () => {
+      classItems.forEach(x => x.classList.remove("active"));
+      item.classList.add("active");
 
-  try {
-    const buffer = await fileInput.files[0].arrayBuffer();
+      const className = item.innerText;
+      title.innerText = "طلاب " + className;
 
-    const res = await fetch("/api/uploadStudentsExcel", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/octet-stream"
-      },
-      body: buffer
+      loadStudents(className);
     });
+  });
 
-    const text = await res.text();
-    let result;
+  // ✅ تحميل الطلاب حسب الفصل
+  async function loadStudents(className) {
+    studentsList.innerHTML = "<div class='empty'>جاري تحميل الطلاب...</div>";
 
     try {
-      result = JSON.parse(text);
-    } catch {
-      alert("خطأ غير متوقع من الخادم");
-      console.error(text);
-      return;
+      const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        studentsList.innerHTML = "<div class='empty'>خطأ في استجابة الخادم</div>";
+        console.error("Invalid response:", text);
+        return;
+      }
+
+      if (!data.success || !data.students || data.students.length === 0) {
+        studentsList.innerHTML = "<div class='empty'>لا يوجد طلاب في هذا الفصل</div>";
+        return;
+      }
+
+      studentsList.innerHTML = "";
+
+      data.students.forEach(s => {
+        const div = document.createElement("div");
+        div.className = "student-row";
+        div.innerText = s.Name;
+        studentsList.appendChild(div);
+      });
+
+    } catch (err) {
+      studentsList.innerHTML = "<div class='empty'>تعذّر تحميل الطلاب</div>";
+      console.error(err);
     }
-
-    if (!result.success) {
-      alert(result.error || "فشل رفع الملف");
-      return;
-    }
-
-    alert(
-      "✅ تم رفع الطلاب بنجاح\n" +
-      "المدخلين: " + result.inserted + "\n" +
-      "المتجاهلين: " + result.skipped
-    );
-
-  } catch (err) {
-    alert("حدث خطأ أثناء الرفع");
-    console.error(err);
   }
-}
 </script>
 
 </body>
