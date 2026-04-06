@@ -1,8 +1,23 @@
 const sql = require("mssql");
-const XLS return;const XLSX = require("xlsx");
+const XLSX = require("xlsx");
+
+module.exports = async function (context, req) {
+
+  // السماح فقط POST
+  if (req.method !== "POST") {
+    context.res = {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        success: false,
+        error: "Method Not Allowed"
+      })
+    };
+    return;
   }
 
   try {
+    // التأكد من وجود الملف
     if (!req.body) {
       context.res = {
         status: 400,
@@ -35,10 +50,10 @@ const XLS return;const XLSX = require("xlsx");
     let inserted = 0;
     let skipped = 0;
 
-    // إدخال الطلاب مع تجاهل المكررين أو الصفوف الخاطئة
+    // إدخال البيانات مع تجاهل المكررات
     for (const row of rows) {
       const name = row["الاسم"] ? row["الاسم"].trim() : "";
-      const cls = row["الفصل"] ? row["الفصل"].trim() : "";
+      const cls  = row["الفصل"] ? row["الفصل"].trim() : "";
 
       if (!name || !cls) {
         skipped++;
@@ -64,7 +79,7 @@ const XLS return;const XLSX = require("xlsx");
       }
     }
 
-    // ✅ إرجاع النتيجة النهائية
+    // ✅ إرجاع JSON نهائي واضح
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -75,8 +90,10 @@ const XLS return;const XLSX = require("xlsx");
         skipped
       })
     };
+    return;
 
   } catch (err) {
+    // ✅ أي خطأ يرجع JSON
     context.res = {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -85,18 +102,6 @@ const XLS return;const XLSX = require("xlsx");
         error: err.message
       })
     };
+    return;
   }
 };
-
-module.exports = async function (context, req) {
-
-  // السماح فقط بـ POST
-  if (req.method !== "POST") {
-    context.res = {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success: false,
-        error: "Method Not Allowed"
-      })
-    };
