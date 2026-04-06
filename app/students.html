@@ -21,7 +21,6 @@
       color: white;
       height: 100vh;
       padding: 20px;
-      box-shadow: 3px 0 10px rgba(0,0,0,0.2);
     }
 
     .sidebar h2 {
@@ -78,12 +77,12 @@
       margin-bottom: 10px;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 
 <body>
+
   <div class="sidebar">
     <h2>الفصول</h2>
     <div id="classesList"></div>
@@ -95,7 +94,7 @@
     <div class="upload-box">
       <h3>📤 رفع أسماء الطلاب من ملف Excel</h3>
       <input type="file" id="excelFile" accept=".xlsx" />
-      <br /><br />
+      <br><br>
       <button onclick="uploadExcel()">رفع الملف</button>
     </div>
 
@@ -103,7 +102,6 @@
   </div>
 
   <script>
-    // الفصول
     const classes = [
       "أول متوسط (أ)",
       "أول متوسط (ب)",
@@ -130,30 +128,9 @@
       document.querySelectorAll(".class-item").forEach(x => x.classList.remove("active"));
       element.classList.add("active");
       document.getElementById("selectedClassTitle").innerText = "الفصل: " + cls;
-      loadStudents();
     }
 
-    // تحميل الطلاب (لو API موجودة)
-    async function loadStudents() {
-      if (!selectedClass) return;
-      try {
-        const res = await fetch(`/api/getStudents?class=${encodeURIComponent(selectedClass)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const list = document.getElementById("studentsList");
-        list.innerHTML = "";
-        data.forEach(s => {
-          const row = document.createElement("div");
-          row.className = "student-row";
-          row.innerText = s.Name;
-          list.appendChild(row);
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    // ✅ التعديل المهم: رفع الملف كـ ArrayBuffer
+    // ✅ حماية إضافية عند رفع الملف
     async function uploadExcel() {
       const fileInput = document.getElementById("excelFile");
 
@@ -173,16 +150,37 @@
           body: buffer
         });
 
-        const result = await res.json();
-        alert(result.message || "تم");
+        // ✅ نقرأ الرد كنص أولاً
+        const text = await res.text();
 
-        if (selectedClass) loadStudents();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch {
+          // ❌ لو رجع HTML أو نص غير JSON
+          alert("حدث خطأ في الخادم (الرد غير صالح)");
+          console.error("Server response:", text);
+          return;
+        }
+
+        if (!res.ok || !result.success) {
+          alert(result.error || "فشل رفع الملف");
+          return;
+        }
+
+        // ✅ نجاح
+        alert(
+          "✅ " + result.message +
+          "\nعدد المدخلين: " + result.inserted +
+          "\nالمتجاهلين: " + result.skipped
+        );
 
       } catch (err) {
-        alert("حدث خطأ أثناء رفع الملف");
+        alert("حدث خطأ غير متوقع أثناء الرفع");
         console.error(err);
       }
     }
   </script>
+
 </body>
 </html>
