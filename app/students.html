@@ -2,22 +2,23 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إدارة الطلاب</title>
+  <title>تسجيل الغياب</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
-      background: #f2f5f4;
       font-family: 'Cairo', Arial, sans-serif;
+      background: #f4f6f5;
       margin: 0;
       padding: 0;
       display: flex;
       color: #2c3e50;
     }
 
+    /* الشريط الجانبي */
     .sidebar {
       width: 260px;
-      background: #27ae60;
+      background: #1f8f55;
       color: white;
       padding: 20px;
       height: 100vh;
@@ -25,191 +26,239 @@
     }
 
     .sidebar h2 {
-      text-align: center;
       margin-top: 0;
+      text-align: center;
     }
 
     .class-item {
       padding: 12px;
-      background: rgba(255,255,255,0.15);
       margin-bottom: 10px;
+      background: #2ecc71;
       border-radius: 8px;
       cursor: pointer;
       text-align: center;
-    }
-
-    .class-item:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .class-item.active {
-      background: #ffffff;
-      color: #27ae60;
       font-weight: bold;
     }
 
+    .class-item:hover {
+      background: #27ae60;
+    }
+
+    .class-item.active {
+      background: white;
+      color: #1f8f55;
+    }
+
+    /* المحتوى */
     .content {
       flex-grow: 1;
       padding: 30px;
       box-sizing: border-box;
     }
 
-    .upload-box {
+    .card {
       background: white;
-      padding: 20px;
       border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    .upload-box button {
-      padding: 10px 20px;
-      background: #27ae60;
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .top-bar input {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: right;
+    }
+
+    th {
+      background: #f9f9f9;
+    }
+
+    .status-btn {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      min-width: 90px;
+    }
+
+    .present {
+      background: #d4f8e8;
+      color: #0f5132;
+    }
+
+    .absent {
+      background: #fde2e2;
+      color: #842029;
+    }
+
+    .save-btn {
+      margin-top: 20px;
+      padding: 10px 25px;
+      background: #198754;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: bold;
+      font-size: 15px;
     }
 
-    .students-list {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .student-row {
-      padding: 8px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .empty {
-      text-align: center;
-      color: #888;
-      padding: 15px;
+    .save-btn:hover {
+      background: #157347;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- الشريط الجانبي -->
-  <div class="sidebar">
-    <h2>الفصول</h2>
-    <div class="class-item">أول متوسط (أ)</div>
-    <div class="class-item">أول متوسط (ب)</div>
-    <div class="class-item">أول متوسط (ج)</div>
-    <div class="class-item">ثاني متوسط (أ)</div>
-    <div class="class-item">ثاني متوسط (ب)</div>
-    <div class="class-item">ثالث متوسط (أ)</div>
-    <div class="class-item">ثالث متوسط (ب)</div>
-  </div>
+<!-- الشريط الجانبي -->
+<div class="sidebar">
+  <h2>الفصول</h2>
+  <div class="class-item">أول متوسط (أ)</div>
+  <div class="class-item">أول متوسط (ب)</div>
+  <div class="class-item">أول متوسط (ج)</div>
+  <div class="class-item">ثاني متوسط (أ)</div>
+  <div class="class-item">ثاني متوسط (ب)</div>
+  <div class="class-item">ثالث متوسط (أ)</div>
+  <div class="class-item">ثالث متوسط (ب)</div>
+</div>
 
-  <!-- المحتوى -->
-  <div class="content">
+<!-- المحتوى -->
+<div class="content">
+  <div class="card">
 
-    <!-- ✅ زر الرفع -->
-    <div class="upload-box">
-      <h3>📤 رفع أسماء الطلاب (سيتم حذف القديم)</h3>
-      <input type="file" id="excelFile" accept=".xlsx">
-      <br><br>
-      <button onclick="uploadExcel()">رفع الملف</button>
+    <div class="top-bar">
+      <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
+      <div>
+        التاريخ:
+        <input type="date" id="attendanceDate">
+      </div>
     </div>
 
-    <h2 id="title">اختر فصلًا لعرض الطلاب</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اسم الطالب</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTable">
+        <tr>
+          <td colspan="3" style="text-align:center;color:#888;">
+            لم يتم اختيار فصل بعد
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <div class="students-list" id="studentsList">
-      <div class="empty">لم يتم اختيار فصل بعد</div>
-    </div>
+    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
 
   </div>
+</div>
 
 <script>
-  const classItems = document.querySelectorAll(".class-item");
-  const studentsList = document.getElementById("studentsList");
+  let selectedClass = null;
+  const absentees = new Set();
+
+  const table = document.getElementById("attendanceTable");
   const title = document.getElementById("title");
 
-  classItems.forEach(item => {
-    item.addEventListener("click", () => {
-      classItems.forEach(x => x.classList.remove("active"));
+  // اختيار فصل
+  document.querySelectorAll(".class-item").forEach(item => {
+    item.addEventListener("click", async () => {
+      document.querySelectorAll(".class-item").forEach(x => x.classList.remove("active"));
       item.classList.add("active");
 
-      const className = item.innerText;
-      title.innerText = "طلاب " + className;
+      selectedClass = item.innerText;
+      title.innerText = "تسجيل الغياب – " + selectedClass;
+      absentees.clear();
 
-      loadStudents(className);
+      await loadStudents(selectedClass);
     });
   });
 
-  // ✅ رفع ملف Excel (حذف ثم رفع)
-  async function uploadExcel() {
-    const fileInput = document.getElementById("excelFile");
+  // تحميل الطلاب من API
+  async function loadStudents(className) {
+    table.innerHTML = `<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>`;
 
-    if (!fileInput.files.length) {
-      alert("اختر ملف Excel أولاً");
-      return;
-    }
+    const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
+    const data = await res.json();
 
-    if (!confirm("سيتم حذف جميع الطلاب الحاليين ثم رفع الملف الجديد، هل أنت متأكد؟")) {
-      return;
-    }
+    table.innerHTML = "";
 
-    try {
-      const buffer = await fileInput.files[0].arrayBuffer();
+    data.students.forEach((s, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${s.Name}</td>
+        <td>
+          <button class="status-btn present" onclick="toggleStatus(this, '${s.Name}')">
+            حاضر
+          </button>
+        </td>
+      `;
+      table.appendChild(tr);
+    });
+  }
 
-      const res = await fetch("/api/uploadStudentsExcel", {
-        method: "POST",
-        headers: { "Content-Type": "application/octet-stream" },
-        body: buffer
-      });
-
-      const text = await res.text();
-      const result = JSON.parse(text);
-
-      if (!result.success) {
-        alert(result.error || "فشل الرفع");
-        return;
-      }
-
-      alert(
-        "✅ تم رفع الطلاب بنجاح\n" +
-        "عدد الطلاب: " + result.inserted
-      );
-
-      studentsList.innerHTML = "<div class='empty'>اختر فصلًا لعرض الطلاب</div>";
-      title.innerText = "اختر فصلًا لعرض الطلاب";
-
-    } catch (e) {
-      alert("حدث خطأ أثناء الرفع");
-      console.error(e);
+  // تبديل حاضر / غائب
+  function toggleStatus(btn, name) {
+    if (btn.classList.contains("present")) {
+      btn.classList.remove("present");
+      btn.classList.add("absent");
+      btn.innerText = "غائب";
+      absentees.add(name);
+    } else {
+      btn.classList.remove("absent");
+      btn.classList.add("present");
+      btn.innerText = "حاضر";
+      absentees.delete(name);
     }
   }
 
-  // ✅ عرض الطلاب
-  async function loadStudents(className) {
-    studentsList.innerHTML = "<div class='empty'>جاري التحميل...</div>";
-
-    try {
-      const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
-      const data = await res.json();
-
-      if (!data.success || data.students.length === 0) {
-        studentsList.innerHTML = "<div class='empty'>لا يوجد طلاب</div>";
-        return;
-      }
-
-      studentsList.innerHTML = "";
-      data.students.forEach(s => {
-        const div = document.createElement("div");
-        div.className = "student-row";
-        div.innerText = s.Name;
-        studentsList.appendChild(div);
-      });
-
-    } catch {
-      studentsList.innerHTML = "<div class='empty'>تعذر تحميل الطلاب</div>";
+  // حفظ الغياب
+  async function saveAttendance() {
+    if (!selectedClass) {
+      alert("اختر فصلًا أولاً");
+      return;
     }
+
+    const date = document.getElementById("attendanceDate").value;
+    if (!date) {
+      alert("اختر التاريخ");
+      return;
+    }
+
+    const res = await fetch("/api/saveAttendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        className: selectedClass,
+        date,
+        absentees: Array.from(absentees)
+      })
+    });
+
+    const result = await res.json();
+    alert(`✅ تم حفظ الغياب\nعدد الغائبين: ${result.absentCount}`);
   }
 </script>
 
