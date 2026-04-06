@@ -19,8 +19,10 @@ module.exports = async function (context, req) {
 
   busboy.on("finish", async () => {
     try {
+      context.log("UPLOAD STARTED");
       if (fileBuffer.length === 0) {
         context.res = { status: 400, body: { error: "ملف غير صالح" } };
+        context.log("ROWS COUNT:", rows.length);
         return;
       }
 
