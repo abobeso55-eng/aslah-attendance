@@ -13,7 +13,7 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const busboy = new Busboy({ headers: req.headers }); // ✅ التصحيح هنا
+  const busboy = Busboy({ headers: req.headers }); // ✅ الصحيح مع Busboy v1
   let fileBuffer = Buffer.alloc(0);
 
   busboy.on("file", (name, file) => {
@@ -81,3 +81,4 @@ module.exports = async function (context, req) {
 
   req.pipe(busboy);
 };
+``
