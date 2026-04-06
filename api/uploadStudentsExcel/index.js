@@ -7,10 +7,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 405,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success: false,
-        error: "Method Not Allowed"
-      })
+      body: JSON.stringify({ success: false, error: "Method Not Allowed" })
     };
     return;
   }
@@ -20,20 +17,15 @@ module.exports = async function (context, req) {
       context.res = {
         status: 400,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          success: false,
-          error: "لا يوجد ملف مرفوع"
-        })
+        body: JSON.stringify({ success: false, error: "لا يوجد ملف مرفوع" })
       };
       return;
     }
 
-    // قراءة ملف Excel
     const workbook = XLSX.read(req.body, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    // الاتصال بقاعدة البيانات
     const pool = await sql.connect({
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
@@ -42,15 +34,19 @@ module.exports = async function (context, req) {
       options: {
         encrypt: true,
         trustServerCertificate: true
-      }
+      },
+      requestTimeout: 30000 // ✅ مهم جدًا
     });
+
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
 
     let inserted = 0;
     let skipped = 0;
 
     for (const row of rows) {
-      const name = row["الاسم"] ? row["الاسم"].trim() : "";
-      const cls  = row["الفصل"] ? row["الفصل"].trim() : "";
+      const name = row["الاسم"] ? row["الاسم"].trim().substring(0, 200) : "";
+      const cls  = row["الفصل"] ? row["الفصل"].trim().substring(0, 100) : "";
 
       if (!name || !cls) {
         skipped++;
@@ -58,9 +54,10 @@ module.exports = async function (context, req) {
       }
 
       try {
-        await pool.request()
-          .input("name", sql.NVarChar, name)
-          .input("class", sql.NVarChar, cls)
+        const request = new sql.Request(transaction);
+        await request
+          .input("name", sql.NVarChar(200), name)
+          .input("class", sql.NVarChar(100), cls)
           .query(`
             IF NOT EXISTS (
               SELECT 1 FROM Students
@@ -76,7 +73,8 @@ module.exports = async function (context, req) {
       }
     }
 
-    // ✅ إرجاع JSON نهائي
+    await transaction.commit();
+
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -93,11 +91,9 @@ module.exports = async function (context, req) {
     context.res = {
       status: 500,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success: false,
-        error: err.message
-      })
+      body: JSON.stringify({ success: false, error: err.message })
     };
     return;
   }
 };
+``
