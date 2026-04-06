@@ -28,12 +28,12 @@ module.exports = async function (context, req) {
       return;
     }
 
-    // قراءة ملف Excel
+    // ✅ قراءة ملف Excel
     const workbook = XLSX.read(req.body, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    // الاتصال بقاعدة البيانات
+    // ✅ الاتصال بقاعدة البيانات
     const pool = await sql.connect({
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
@@ -45,40 +45,54 @@ module.exports = async function (context, req) {
       }
     });
 
-    // ✅ 1) حذف جميع الطلاب السابقين
-    await pool.request().query("DELETE FROM Students");
+    // ✅ بدء Transaction
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
 
-    let inserted = 0;
+    try {
+      // ✅ حذف جميع الطلاب السابقين
+      await new sql.Request(transaction)
+        .query("DELETE FROM Students");
 
-    // ✅ 2) إدخال كل الطلاب من جديد
-    for (const row of rows) {
-      const name = row["الاسم"] ? row["الاسم"].trim() : "";
-      const cls  = row["الفصل"] ? row["الفصل"].trim() : "";
+      let inserted = 0;
 
-      if (!name || !cls) continue;
+      // ✅ إدخال جميع الطلاب من ملف Excel
+      for (const row of rows) {
+        const name = row["الاسم"] ? row["الاسم"].trim() : "";
+        const cls  = row["الفصل"] ? row["الفصل"].trim() : "";
 
-      await pool.request()
-        .input("name", sql.NVarChar, name)
-        .input("class", sql.NVarChar, cls)
-        .query(`
-          INSERT INTO Students (Name, Class)
-          VALUES (@name, @class)
-        `);
+        if (!name || !cls) continue;
 
-      inserted++;
+        await new sql.Request(transaction)
+          .input("name", sql.NVarChar, name)
+          .input("class", sql.NVarChar, cls)
+          .query(`
+            INSERT INTO Students (Name, Class)
+            VALUES (@name, @class)
+          `);
+
+        inserted++;
+      }
+
+      // ✅ تأكيد العملية
+      await transaction.commit();
+
+      context.res = {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          success: true,
+          message: "تم مسح البيانات ورفع الطلاب بنجاح",
+          inserted
+        })
+      };
+      return;
+
+    } catch (txErr) {
+      // ❌ في حال أي خطأ → تراجع كامل
+      await transaction.rollback();
+      throw txErr;
     }
-
-    // ✅ رد نجاح نهائي
-    context.res = {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        success: true,
-        message: "تم مسح البيانات ورفع الطلاب بنجاح",
-        inserted
-      })
-    };
-    return;
 
   } catch (err) {
     context.res = {
@@ -92,4 +106,3 @@ module.exports = async function (context, req) {
     return;
   }
 };
-``
