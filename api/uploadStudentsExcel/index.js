@@ -3,7 +3,6 @@ const XLSX = require("xlsx");
 
 module.exports = async function (context, req) {
 
-  // السماح فقط POST
   if (req.method !== "POST") {
     context.res = {
       status: 405,
@@ -17,7 +16,6 @@ module.exports = async function (context, req) {
   }
 
   try {
-    // التأكد من وجود الملف
     if (!req.body) {
       context.res = {
         status: 400,
@@ -50,7 +48,6 @@ module.exports = async function (context, req) {
     let inserted = 0;
     let skipped = 0;
 
-    // إدخال البيانات مع تجاهل المكررات
     for (const row of rows) {
       const name = row["الاسم"] ? row["الاسم"].trim() : "";
       const cls  = row["الفصل"] ? row["الفصل"].trim() : "";
@@ -74,12 +71,12 @@ module.exports = async function (context, req) {
           `);
 
         inserted++;
-      } catch (e) {
+      } catch {
         skipped++;
       }
     }
 
-    // ✅ إرجاع JSON نهائي واضح
+    // ✅ إرجاع JSON نهائي
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -93,7 +90,6 @@ module.exports = async function (context, req) {
     return;
 
   } catch (err) {
-    // ✅ أي خطأ يرجع JSON
     context.res = {
       status: 500,
       headers: { "Content-Type": "application/json" },
