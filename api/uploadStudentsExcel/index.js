@@ -17,7 +17,7 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const busboy = Busboy({ headers: req.headers });
+  const busboy = new Busboy({ headers: req.headers });
   let fileBuffer = Buffer.alloc(0);
 
   // قراءة الملف
