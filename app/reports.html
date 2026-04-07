@@ -5,7 +5,7 @@
 <title>تقرير الغياب اليومي</title>
 
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+https://cdn.jsdelivr.net/npm/chart.js
 
 <style>
 body{
@@ -15,11 +15,11 @@ body{
   color:#2c3e50;
 }
 
-/* ✅ هيدر أبيض */
+/* ===== الهيدر ===== */
 header{
   background:#ffffff;
   padding:15px 25px;
-  border-bottom:4px solid #1f8f55; /* أخضر رسمي */
+  border-bottom:4px solid #1f8f55;
 }
 
 .header-inner{
@@ -48,15 +48,21 @@ header{
   color:#1f8f55;
 }
 
+.school-admin{
+  font-size:14px;
+  color:#1f8f55;
+  font-weight:bold;
+}
+
 .school-name{
   font-size:20px;
   font-weight:bold;
   color:#1f8f55;
 }
 
+/* ===== المحتوى ===== */
 .container{padding:25px}
 
-/* بطاقات */
 .summary{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -100,7 +106,7 @@ header{
   margin-bottom:20px;
 }
 
-/* ✅ الطباعة */
+/* ===== الطباعة ===== */
 @media print{
   body{background:white}
   .print-btn{display:none}
@@ -120,11 +126,12 @@ header{
 <header>
   <div class="header-inner">
     <div class="school-info">
-      <!-- ✅ الشعار الرسمي (واضح الآن) -->
+      <!-- ✅ شعار وزارة التعليم -->
       <img src="assets/moe-logo.png" alt="وزارة التعليم">
 
       <div class="school-text">
         <div class="school-ministry">وزارة التعليم</div>
+        <div class="school-admin">إدارة التعليم بمنطقة الباحة</div>
         <div class="school-name">متوسطة العسلة</div>
       </div>
     </div>
@@ -139,7 +146,7 @@ header{
 
   <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
 
-  <!-- ملخص -->
+  <!-- ✅ ملخص -->
   <div class="summary">
     <div class="card">
       <h3>👥 إجمالي الطلاب</h3>
@@ -159,13 +166,13 @@ header{
     </div>
   </div>
 
-  <!-- الرسم -->
+  <!-- ✅ الرسم البياني -->
   <div class="chart-box">
     <h3>نسبة الحضور والغياب</h3>
     <canvas id="percentChart" height="120"></canvas>
   </div>
 
-  <!-- حسب الفصول -->
+  <!-- ✅ الغياب حسب الفصول -->
   <h3>الغياب حسب الفصول</h3>
   <div class="classes" id="classCards"></div>
 
