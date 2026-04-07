@@ -5,121 +5,89 @@
 <title>نظام الغياب</title>
 
 <style>
-body {
-  font-family: 'Cairo', Arial, sans-serif;
-  margin: 0;
-  background: #f4f6f5;
-  color: #2c3e50;
+body{
+  font-family:'Cairo',Arial,sans-serif;
+  margin:0;
+  background:#f4f6f5;
+  color:#2c3e50;
 }
-
-header {
-  background: #1f8f55;
-  color: white;
-  padding: 15px 25px;
-  font-size: 20px;
-  font-weight: bold;
+header{
+  background:#1f8f55;
+  color:white;
+  padding:15px 25px;
+  font-size:20px;
+  font-weight:bold;
 }
+.container{padding:25px}
 
-.container {
-  padding: 25px;
+/* ===== بطاقات الفصول ===== */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;
 }
-
-/* ===== Dashboard ===== */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+.card{
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  cursor:pointer;
 }
-
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.08);
-  cursor: pointer;
-  transition: transform .2s;
+.card h3{margin:0 0 10px}
+.stats{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
 }
+.present{color:#198754}
+.absent{color:#dc3545}
 
-.card:hover {
-  transform: translateY(-4px);
+/* ===== صفحة الغياب ===== */
+.hidden{display:none}
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
 }
-
-.card h3 {
-  margin: 0 0 10px;
+.back-btn{
+  background:none;
+  border:none;
+  color:#1f8f55;
+  font-size:15px;
+  cursor:pointer;
 }
-
-.stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
 }
-
-.present { color: #198754; }
-.absent { color: #dc3545; }
-
-/* ===== Attendance ===== */
-.hidden { display: none; }
-
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+th,td{padding:12px;border-bottom:1px solid #eee}
+.status-btn{
+  padding:6px 16px;
+  border-radius:20px;
+  border:none;
+  cursor:pointer;
 }
-
-.back-btn {
-  background: none;
-  border: none;
-  color: #1f8f55;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.status-btn {
-  padding: 6px 16px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-}
-
-.present-btn {
-  background: #d4f8e8;
-  color: #0f5132;
-}
-
-.absent-btn {
-  background: #fde2e2;
-  color: #842029;
-}
-
-.save-btn {
-  margin-top: 15px;
-  padding: 10px 25px;
-  background: #198754;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.present-btn{background:#d4f8e8;color:#0f5132}
+.absent-btn{background:#fde2e2;color:#842029}
+.save-btn{
+  margin-top:15px;
+  padding:10px 25px;
+  background:#198754;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<header>نظام الغياب</header>
+<header>نظام غياب الطلاب</header>
 
 <div class="container">
 
@@ -139,11 +107,7 @@ th, td {
 
   <table>
     <thead>
-      <tr>
-        <th>#</th>
-        <th>اسم الطالب</th>
-        <th>الحالة</th>
-      </tr>
+      <tr><th>#</th><th>اسم الطالب</th><th>الحالة</th></tr>
     </thead>
     <tbody id="attendanceTable"></tbody>
   </table>
@@ -154,59 +118,65 @@ th, td {
 </div>
 
 <script>
-const classes = [
+const classes=[
  "أول متوسط (أ)","أول متوسط (ب)","أول متوسط (ج)",
  "ثاني متوسط (أ)","ثاني متوسط (ب)",
  "ثالث متوسط (أ)","ثالث متوسط (ب)"
 ];
 
-let selectedClass = null;
-const absentees = new Set();
+let selectedClass=null;
+const absentees=new Set();
 
-// ===== Load dashboard =====
-const cards = document.getElementById("classCards");
+// تاريخ اليوم
+const today=new Date().toISOString().split("T")[0];
 
-classes.forEach(cls => {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerHTML = `
-    <h3>${cls}</h3>
-    <div class="stats">
-      <span class="present">طلاب</span>
-      <span class="absent">اليوم</span>
-    </div>`;
-  div.onclick = () => openAttendance(cls);
-  cards.appendChild(div);
-});
+// ===== تحميل بطاقات الفصول =====
+const cards=document.getElementById("classCards");
+loadDashboard();
 
-// ===== Attendance =====
-async function openAttendance(cls) {
-  selectedClass = cls;
+async function loadDashboard(){
+  cards.innerHTML="";
+  for(const cls of classes){
+    const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
+    const data=await res.json();
+
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <h3>${cls}</h3>
+      <div class="stats">
+        <span class="present">طلاب: ${data.total}</span>
+        <span class="absent">غائب: ${data.absent}</span>
+      </div>`;
+    div.onclick=()=>openAttendance(cls);
+    cards.appendChild(div);
+  }
+}
+
+// ===== فتح صفحة الغياب =====
+async function openAttendance(cls){
+  selectedClass=cls;
   absentees.clear();
 
   document.getElementById("dashboard").classList.add("hidden");
   document.getElementById("attendance").classList.remove("hidden");
-  document.getElementById("classTitle").innerText = cls;
+  document.getElementById("classTitle").innerText=cls;
+  document.getElementById("attendanceDate").value=today;
 
-  // تاريخ اليوم
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("attendanceDate").value = today;
+  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data=await res.json();
 
-  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data = await res.json();
-
-  const table = document.getElementById("attendanceTable");
-  table.innerHTML = "";
+  const table=document.getElementById("attendanceTable");
+  table.innerHTML="";
 
   data.students.forEach((s,i)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
       <td>${i+1}</td>
       <td>${s.Name}</td>
       <td>
-        <button class="status-btn present-btn" onclick="toggle(this,'${s.Name}')">
-          حاضر
-        </button>
+        <button class="status-btn present-btn"
+          onclick="toggle(this,'${s.Name}')">حاضر</button>
       </td>`;
     table.appendChild(tr);
   });
@@ -218,7 +188,7 @@ function toggle(btn,name){
     btn.classList.add("absent-btn");
     btn.innerText="غائب";
     absentees.add(name);
-  } else {
+  }else{
     btn.classList.remove("absent-btn");
     btn.classList.add("present-btn");
     btn.innerText="حاضر";
@@ -229,11 +199,11 @@ function toggle(btn,name){
 function backToDashboard(){
   document.getElementById("attendance").classList.add("hidden");
   document.getElementById("dashboard").classList.remove("hidden");
+  loadDashboard();
 }
 
 async function saveAttendance(){
   const date=document.getElementById("attendanceDate").value;
-
   await fetch("/api/saveAttendance",{
     method:"POST",
     headers:{ "Content-Type":"application/json"},
@@ -243,7 +213,6 @@ async function saveAttendance(){
       absentees:Array.from(absentees)
     })
   });
-
   alert("✅ تم حفظ الغياب");
   backToDashboard();
 }
