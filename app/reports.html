@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* ===== شاشة ===== */
 body{
   font-family:'Cairo',Arial,sans-serif;
   background:#f4f6f5;
@@ -23,12 +24,11 @@ header{
 }
 .container{padding:25px}
 
-/* بطاقات الملخص */
 .summary{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:20px;
-  margin-bottom:30px;
+  margin-bottom:25px;
 }
 .card{
   background:white;
@@ -36,26 +36,50 @@ header{
   padding:20px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
-.card h3{margin:0 0 10px}
-
 .good{color:#198754}
 .bad{color:#dc3545}
 .info{color:#0d6efd}
 
-/* رسم */
 .chart-box{
   background:white;
   border-radius:14px;
   padding:20px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
-  margin-bottom:30px;
+  margin-bottom:25px;
 }
 
-/* بطاقات الفصول */
 .classes{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:20px;
+}
+
+.print-btn{
+  background:#0d6efd;
+  color:white;
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  margin-bottom:20px;
+}
+
+/* ===== طباعة ===== */
+@media print {
+  body {
+    background:white;
+  }
+  header, .print-btn {
+    display:none;
+  }
+  .card, .chart-box {
+    box-shadow:none;
+    border:1px solid #ccc;
+  }
+  .container {
+    padding:0;
+  }
 }
 </style>
 </head>
@@ -66,7 +90,10 @@ header{
 
 <div class="container">
 
-  <!-- ✅ ملخص عام -->
+  <!-- زر الطباعة -->
+  <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
+
+  <!-- ملخص -->
   <div class="summary">
     <div class="card">
       <h3>👥 إجمالي الطلاب</h3>
@@ -86,13 +113,13 @@ header{
     </div>
   </div>
 
-  <!-- ✅ رسم النسبة -->
+  <!-- الرسم البياني -->
   <div class="chart-box">
     <h3>نسبة الحضور والغياب</h3>
     <canvas id="percentChart" height="120"></canvas>
   </div>
 
-  <!-- ✅ الغياب حسب الفصول -->
+  <!-- الغياب حسب الفصول -->
   <h3>الغياب حسب الفصول</h3>
   <div class="classes" id="classCards"></div>
 
@@ -124,8 +151,8 @@ const cards=document.getElementById("classCards");
     div.className="card";
     div.innerHTML=`
       <h3>${cls}</h3>
-      <div class="good">✅ حاضر: ${data.present}</div>
-      <div class="bad">❌ غائب: ${data.absent}</div>
+      <p class="good">✅ حاضر: ${data.present}</p>
+      <p class="bad">❌ غائب: ${data.absent}</p>
     `;
     cards.appendChild(div);
   }
@@ -164,3 +191,4 @@ function drawChart(present, absent){
 
 </body>
 </html>
+``
