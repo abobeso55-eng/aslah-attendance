@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== شاشة ===== */
 body{
   font-family:'Cairo',Arial,sans-serif;
   background:#f4f6f5;
@@ -19,6 +18,21 @@ header{
   background:#1f8f55;
   color:white;
   padding:15px 25px;
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.school-info{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.school-info img{
+  height:60px;
+}
+.school-name{
   font-size:20px;
   font-weight:bold;
 }
@@ -65,35 +79,35 @@ header{
   margin-bottom:20px;
 }
 
-/* ===== طباعة ===== */
-@media print {
-  body {
-    background:white;
-  }
-  header, .print-btn {
-    display:none;
-  }
-  .card, .chart-box {
-    box-shadow:none;
-    border:1px solid #ccc;
-  }
-  .container {
-    padding:0;
-  }
+/* ===== الطباعة ===== */
+@media print{
+  body{background:white}
+  .print-btn{display:none}
+  header{background:white;color:black;border-bottom:2px solid #000}
+  .card,.chart-box{box-shadow:none;border:1px solid #ccc}
 }
 </style>
 </head>
 
 <body>
 
-<header>📊 تقرير الغياب اليومي</header>
+<header>
+  <div class="header-inner">
+    <div class="school-info">
+      <!-- ✅ الشعار -->
+      <img src="assets/logo.png" alt="شعار المدرسة">
+      <!-- ✅ اسم المدرسة -->
+      <div class="school-name">مدرسة متوسطة العسيلة</div>
+    </div>
+    <div>📊 تقرير الغياب اليومي</div>
+  </div>
+</header>
 
 <div class="container">
 
-  <!-- زر الطباعة -->
   <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
 
-  <!-- ملخص -->
+  <!-- ✅ ملخص -->
   <div class="summary">
     <div class="card">
       <h3>👥 إجمالي الطلاب</h3>
@@ -113,13 +127,13 @@ header{
     </div>
   </div>
 
-  <!-- الرسم البياني -->
+  <!-- ✅ الرسم البياني -->
   <div class="chart-box">
     <h3>نسبة الحضور والغياب</h3>
     <canvas id="percentChart" height="120"></canvas>
   </div>
 
-  <!-- الغياب حسب الفصول -->
+  <!-- ✅ الغياب حسب الفصول -->
   <h3>الغياب حسب الفصول</h3>
   <div class="classes" id="classCards"></div>
 
@@ -133,10 +147,8 @@ const classes=[
 ];
 
 const today=new Date().toISOString().split("T")[0];
-
 let totalStudents=0;
 let totalAbsent=0;
-
 const cards=document.getElementById("classCards");
 
 (async ()=>{
@@ -158,37 +170,24 @@ const cards=document.getElementById("classCards");
   }
 
   const present=totalStudents-totalAbsent;
-  const presentPct=((present/totalStudents)*100).toFixed(1);
-  const absentPct=((totalAbsent/totalStudents)*100).toFixed(1);
-
   document.getElementById("totalStudents").innerText=totalStudents;
   document.getElementById("absentCount").innerText=totalAbsent;
-  document.getElementById("presentPercent").innerText=presentPct+"%";
-  document.getElementById("absentPercent").innerText=absentPct+"%";
+  document.getElementById("presentPercent").innerText=((present/totalStudents)*100).toFixed(1)+"%";
+  document.getElementById("absentPercent").innerText=((totalAbsent/totalStudents)*100).toFixed(1)+"%";
 
-  drawChart(present, totalAbsent);
-})();
-
-function drawChart(present, absent){
-  const ctx=document.getElementById("percentChart").getContext("2d");
-  new Chart(ctx,{
+  new Chart(document.getElementById("percentChart"),{
     type:"doughnut",
     data:{
       labels:["حضور","غياب"],
       datasets:[{
-        data:[present,absent],
+        data:[present,totalAbsent],
         backgroundColor:["#2ecc71","#e74c3c"]
       }]
     },
-    options:{
-      plugins:{
-        legend:{position:"bottom"}
-      }
-    }
+    options:{plugins:{legend:{position:"bottom"}}}
   });
-}
+})();
 </script>
 
 </body>
 </html>
-``
