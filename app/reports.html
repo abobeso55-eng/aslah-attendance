@@ -26,6 +26,7 @@ header{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  flex-wrap:wrap;
 }
 
 .school-info{
@@ -43,21 +44,22 @@ header{
   flex-direction:column;
 }
 
-.school-ministry{
-  font-size:14px;
-  color:#1f8f55;
-}
-
+.school-ministry,
 .school-admin{
   font-size:14px;
   color:#1f8f55;
-  font-weight:bold;
 }
 
 .school-name{
   font-size:20px;
   font-weight:bold;
   color:#1f8f55;
+}
+
+.report-info{
+  text-align:left;
+  color:#1f8f55;
+  font-weight:bold;
 }
 
 /* ===== المحتوى ===== */
@@ -125,9 +127,10 @@ header{
 
 <header>
   <div class="header-inner">
+
     <div class="school-info">
-      <!-- ✅ شعار وزارة التعليم -->
-      <img src="assets/moe-logo.png" alt="وزارة التعليم">
+      <!-- شعار وزارة التعليم -->
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
 
       <div class="school-text">
         <div class="school-ministry">وزارة التعليم</div>
@@ -136,9 +139,13 @@ header{
       </div>
     </div>
 
-    <div style="font-weight:bold;color:#1f8f55">
-      📊 تقرير الغياب اليومي
+    <!-- ✅ التاريخ -->
+    <div class="report-info">
+      <div>📊 تقرير الغياب اليومي</div>
+      <div id="gregorianDate"></div>
+      <div id="hijriDate"></div>
     </div>
+
   </div>
 </header>
 
@@ -179,20 +186,31 @@ header{
 </div>
 
 <script>
+/* ===== التاريخ ===== */
+const today = new Date();
+document.getElementById("gregorianDate").innerText =
+  "الميلادي: " + today.toLocaleDateString("ar-SA");
+
+document.getElementById("hijriDate").innerText =
+  "الهجري: " + new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+    day:"numeric", month:"long", year:"numeric"
+  }).format(today);
+
+/* ===== البيانات ===== */
 const classes=[
  "أول متوسط (أ)","أول متوسط (ب)","أول متوسط (ج)",
  "ثاني متوسط (أ)","ثاني متوسط (ب)",
  "ثالث متوسط (أ)","ثالث متوسط (ب)"
 ];
 
-const today=new Date().toISOString().split("T")[0];
+const dateISO = today.toISOString().split("T")[0];
 let totalStudents=0;
 let totalAbsent=0;
 const cards=document.getElementById("classCards");
 
 (async ()=>{
   for(const cls of classes){
-    const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
+    const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${dateISO}`);
     const data=await res.json();
 
     totalStudents+=data.total;
@@ -230,3 +248,4 @@ const cards=document.getElementById("classCards");
 
 </body>
 </html>
+``
