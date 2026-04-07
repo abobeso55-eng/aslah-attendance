@@ -30,11 +30,19 @@ header{
   gap:15px;
 }
 .school-info img{
-  height:60px;
+  height:70px;
+}
+.school-text{
+  display:flex;
+  flex-direction:column;
 }
 .school-name{
   font-size:20px;
   font-weight:bold;
+}
+.school-ministry{
+  font-size:14px;
+  opacity:0.9;
 }
 .container{padding:25px}
 
@@ -83,8 +91,15 @@ header{
 @media print{
   body{background:white}
   .print-btn{display:none}
-  header{background:white;color:black;border-bottom:2px solid #000}
-  .card,.chart-box{box-shadow:none;border:1px solid #ccc}
+  header{
+    background:white;
+    color:black;
+    border-bottom:2px solid #000;
+  }
+  .card,.chart-box{
+    box-shadow:none;
+    border:1px solid #ccc;
+  }
 }
 </style>
 </head>
@@ -94,10 +109,12 @@ header{
 <header>
   <div class="header-inner">
     <div class="school-info">
-      <!-- ✅ الشعار -->
-      <img src="assets/logo.png" alt="شعار المدرسة">
-      <!-- ✅ اسم المدرسة -->
-      <div class="school-name">مدرسة متوسطة العسيلة</div>
+      <!-- ✅ شعار وزارة التعليم -->
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
+      <div class="school-text">
+        <div class="school-ministry">وزارة التعليم</div>
+        <div class="school-name">متوسطة العسلة</div>
+      </div>
     </div>
     <div>📊 تقرير الغياب اليومي</div>
   </div>
@@ -184,7 +201,9 @@ const cards=document.getElementById("classCards");
         backgroundColor:["#2ecc71","#e74c3c"]
       }]
     },
-    options:{plugins:{legend:{position:"bottom"}}}
+    options:{
+      plugins:{legend:{position:"bottom"}}
+    }
   });
 })();
 </script>
