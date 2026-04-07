@@ -2,12 +2,21 @@ const sql = require("mssql");
 
 module.exports = async function (context, req) {
   try {
-    const { className, date, absentees } = req.body;
+    // ✅ تحويل body من string إلى JSON
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
+
+    const { className, date, absentees } = body;
 
     if (!className || !date || !Array.isArray(absentees)) {
       context.res = {
         status: 400,
-        body: { success: false, error: "بيانات غير مكتملة" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          success: false,
+          error: "بيانات غير مكتملة"
+        })
       };
       return;
     }
@@ -23,7 +32,7 @@ module.exports = async function (context, req) {
       }
     });
 
-    // حذف تسجيلات اليوم السابقة
+    // ✅ حذف تسجيلات الغياب السابقة لنفس اليوم والفصل
     await pool.request()
       .input("class", sql.NVarChar, className)
       .input("date", sql.Date, date)
@@ -32,7 +41,7 @@ module.exports = async function (context, req) {
         WHERE Class = @class AND AttendanceDate = @date
       `);
 
-    // إدخال الغائبين فقط
+    // ✅ إدخال الغائبين فقط
     for (const name of absentees) {
       await pool.request()
         .input("name", sql.NVarChar, name)
@@ -47,18 +56,24 @@ module.exports = async function (context, req) {
 
     context.res = {
       status: 200,
-      body: {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         success: true,
         message: "تم حفظ الغياب بنجاح",
         absentCount: absentees.length
-      }
+      })
     };
     return;
 
   } catch (err) {
     context.res = {
       status: 500,
-      body: { success: false, error: err.message }
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        success: false,
+        error: err.message
+      })
     };
+    return;
   }
 };
