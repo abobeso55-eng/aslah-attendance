@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>تسجيل الغياب</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       font-family: 'Cairo', Arial, sans-serif;
       background: #f4f6f5;
       margin: 0;
-      padding: 0;
       display: flex;
       color: #2c3e50;
     }
@@ -21,22 +19,31 @@
       color: white;
       padding: 20px;
       height: 100vh;
-      box-sizing: border-box;
     }
 
     .sidebar h2 {
       text-align: center;
-      margin-top: 0;
+    }
+
+    .nav-btn {
+      display: block;
+      background: #ffffff;
+      color: #1f8f55;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: bold;
     }
 
     .class-item {
-      padding: 12px;
-      margin-bottom: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
       background: #2ecc71;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       text-align: center;
-      font-weight: bold;
     }
 
     .class-item.active {
@@ -59,25 +66,8 @@
     .top-bar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
       margin-bottom: 15px;
-    }
-
-    .counters {
-      display: flex;
-      gap: 15px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .present-count {
-      color: #0f5132;
-    }
-
-    .absent-count {
-      color: #842029;
+      flex-wrap: wrap;
     }
 
     table {
@@ -95,21 +85,13 @@
       border-radius: 20px;
       border: none;
       cursor: pointer;
-      min-width: 90px;
     }
 
-    .present {
-      background: #d4f8e8;
-      color: #0f5132;
-    }
-
-    .absent {
-      background: #fde2e2;
-      color: #842029;
-    }
+    .present { background:#d4f8e8; color:#0f5132; }
+    .absent { background:#fde2e2; color:#842029; }
 
     .save-btn {
-      margin-top: 20px;
+      margin-top: 15px;
       padding: 10px 25px;
       background: #198754;
       color: white;
@@ -118,10 +100,8 @@
       cursor: pointer;
     }
 
-    .hijri {
-      font-size: 14px;
-      color: #555;
-      margin-top: 4px;
+    .counters {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -129,6 +109,10 @@
 <body>
 
 <div class="sidebar">
+  <h2>القائمة</h2>
+  <a href="students.html" class="nav-btn">🟢 تسجيل الغياب</a>
+  <a href="reports.html" class="nav-btn">📊 التقارير</a>
+
   <h2>الفصول</h2>
   <div class="class-item">أول متوسط (أ)</div>
   <div class="class-item">أول متوسط (ب)</div>
@@ -143,17 +127,15 @@
   <div class="card">
 
     <div class="top-bar">
+      <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
       <div>
-        <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
-        📅 التاريخ:
-        <input type="date" id="attendanceDate" onchange="updateHijriDate()">
-        <div id="hijriDate" class="hijri"></div>
+        📅 <input type="date" id="attendanceDate">
       </div>
+    </div>
 
-      <div class="counters">
-        <div class="present-count">✅ الحاضر: <span id="presentCount">0</span></div>
-        <div class="absent-count">❌ الغائب: <span id="absentCount">0</span></div>
-      </div>
+    <div class="counters">
+      ✅ حاضر: <span id="presentCount">0</span> |
+      ❌ غائب: <span id="absentCount">0</span>
     </div>
 
     <table>
@@ -165,11 +147,7 @@
         </tr>
       </thead>
       <tbody id="attendanceTable">
-        <tr>
-          <td colspan="3" style="text-align:center;color:#888;">
-            لم يتم اختيار فصل بعد
-          </td>
-        </tr>
+        <tr><td colspan="3" style="text-align:center">لم يتم اختيار فصل</td></tr>
       </tbody>
     </table>
 
@@ -180,104 +158,75 @@
 
 <script>
   let selectedClass = null;
+  let total = 0;
   const absentees = new Set();
-  let totalStudents = 0;
 
   const table = document.getElementById("attendanceTable");
-  const title = document.getElementById("title");
   const presentCount = document.getElementById("presentCount");
   const absentCount = document.getElementById("absentCount");
 
   document.querySelectorAll(".class-item").forEach(item => {
-    item.addEventListener("click", async () => {
-      document.querySelectorAll(".class-item").forEach(x => x.classList.remove("active"));
+    item.onclick = async () => {
+      document.querySelectorAll(".class-item").forEach(x=>x.classList.remove("active"));
       item.classList.add("active");
 
       selectedClass = item.innerText;
-      title.innerText = "تسجيل الغياب – " + selectedClass;
       absentees.clear();
 
-      await loadStudents(selectedClass);
-    });
+      const res = await fetch(`/api/getStudents?class=${encodeURIComponent(selectedClass)}`);
+      const data = await res.json();
+
+      table.innerHTML = "";
+      total = data.students.length;
+      updateCounters();
+
+      data.students.forEach((s,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${i+1}</td>
+          <td>${s.Name}</td>
+          <td>
+            <button class="status-btn present" onclick="toggle(this,'${s.Name}')">حاضر</button>
+          </td>`;
+        table.appendChild(tr);
+      });
+    };
   });
 
-  async function loadStudents(className) {
-    table.innerHTML = `<tr><td colspan="3">جاري التحميل...</td></tr>`;
-
-    const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
-    const data = await res.json();
-
-    table.innerHTML = "";
-    totalStudents = data.students.length;
-    updateCounters();
-
-    data.students.forEach((s, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${s.Name}</td>
-        <td>
-          <button class="status-btn present" onclick="toggleStatus(this, '${s.Name}')">
-            حاضر
-          </button>
-        </td>
-      `;
-      table.appendChild(tr);
-    });
-  }
-
-  function toggleStatus(btn, name) {
-    if (btn.classList.contains("present")) {
-      btn.classList.remove("present");
-      btn.classList.add("absent");
-      btn.innerText = "غائب";
-      absentees.add(name);
+  function toggle(btn,name){
+    if(btn.classList.contains("present")){
+      btn.classList.remove("present");btn.classList.add("absent");
+      btn.innerText="غائب";absentees.add(name);
     } else {
-      btn.classList.remove("absent");
-      btn.classList.add("present");
-      btn.innerText = "حاضر";
-      absentees.delete(name);
+      btn.classList.remove("absent");btn.classList.add("present");
+      btn.innerText="حاضر";absentees.delete(name);
     }
     updateCounters();
   }
 
-  function updateCounters() {
-    absentCount.innerText = absentees.size;
-    presentCount.innerText = totalStudents - absentees.size;
+  function updateCounters(){
+    absentCount.innerText=absentees.size;
+    presentCount.innerText=total-absentees.size;
   }
 
-  function updateHijriDate() {
-    const input = document.getElementById("attendanceDate").value;
-    const hijriDiv = document.getElementById("hijriDate");
-    if (!input) { hijriDiv.innerText = ""; return; }
+  async function saveAttendance(){
+    const date=document.getElementById("attendanceDate").value;
+    if(!selectedClass||!date){alert("اختر الفصل والتاريخ");return;}
 
-    const date = new Date(input);
-    const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
-      day: "numeric", month: "long", year: "numeric"
-    }).format(date);
-
-    hijriDiv.innerText = "الموافق: " + hijri + " هـ";
-  }
-
-  async function saveAttendance() {
-    if (!selectedClass) { alert("اختر فصلًا"); return; }
-    const date = document.getElementById("attendanceDate").value;
-    if (!date) { alert("اختر التاريخ"); return; }
-
-    const res = await fetch("/api/saveAttendance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        className: selectedClass,
+    const res=await fetch("/api/saveAttendance",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body:JSON.stringify({
+        className:selectedClass,
         date,
-        absentees: Array.from(absentees)
+        absentees:Array.from(absentees)
       })
     });
-
-    const result = await res.json();
-    alert(`✅ تم حفظ الغياب\nعدد الغائبين: ${result.absentCount}`);
+    const r=await res.json();
+    alert("✅ تم حفظ الغياب\nعدد الغائبين: "+r.absentCount);
   }
 </script>
 
 </body>
 </html>
+``
