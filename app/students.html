@@ -39,10 +39,6 @@
       font-weight: bold;
     }
 
-    .class-item:hover {
-      background: #27ae60;
-    }
-
     .class-item.active {
       background: white;
       color: #1f8f55;
@@ -51,7 +47,6 @@
     .content {
       flex-grow: 1;
       padding: 30px;
-      box-sizing: border-box;
     }
 
     .card {
@@ -65,9 +60,24 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .counters {
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .present-count {
+      color: #0f5132;
+    }
+
+    .absent-count {
+      color: #842029;
     }
 
     table {
@@ -78,11 +88,6 @@
     th, td {
       padding: 10px;
       border-bottom: 1px solid #eee;
-      text-align: right;
-    }
-
-    th {
-      background: #f9f9f9;
     }
 
     .status-btn {
@@ -90,7 +95,6 @@
       border-radius: 20px;
       border: none;
       cursor: pointer;
-      font-size: 13px;
       min-width: 90px;
     }
 
@@ -112,7 +116,6 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 15px;
     }
 
     .hijri {
@@ -125,7 +128,6 @@
 
 <body>
 
-<!-- الشريط الجانبي -->
 <div class="sidebar">
   <h2>الفصول</h2>
   <div class="class-item">أول متوسط (أ)</div>
@@ -137,16 +139,20 @@
   <div class="class-item">ثالث متوسط (ب)</div>
 </div>
 
-<!-- المحتوى -->
 <div class="content">
   <div class="card">
 
     <div class="top-bar">
-      <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
       <div>
+        <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
         📅 التاريخ:
         <input type="date" id="attendanceDate" onchange="updateHijriDate()">
         <div id="hijriDate" class="hijri"></div>
+      </div>
+
+      <div class="counters">
+        <div class="present-count">✅ الحاضر: <span id="presentCount">0</span></div>
+        <div class="absent-count">❌ الغائب: <span id="absentCount">0</span></div>
       </div>
     </div>
 
@@ -175,9 +181,12 @@
 <script>
   let selectedClass = null;
   const absentees = new Set();
+  let totalStudents = 0;
 
   const table = document.getElementById("attendanceTable");
   const title = document.getElementById("title");
+  const presentCount = document.getElementById("presentCount");
+  const absentCount = document.getElementById("absentCount");
 
   document.querySelectorAll(".class-item").forEach(item => {
     item.addEventListener("click", async () => {
@@ -193,12 +202,14 @@
   });
 
   async function loadStudents(className) {
-    table.innerHTML = `<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>`;
+    table.innerHTML = `<tr><td colspan="3">جاري التحميل...</td></tr>`;
 
     const res = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
     const data = await res.json();
 
     table.innerHTML = "";
+    totalStudents = data.students.length;
+    updateCounters();
 
     data.students.forEach((s, index) => {
       const tr = document.createElement("tr");
@@ -227,38 +238,31 @@
       btn.innerText = "حاضر";
       absentees.delete(name);
     }
+    updateCounters();
+  }
+
+  function updateCounters() {
+    absentCount.innerText = absentees.size;
+    presentCount.innerText = totalStudents - absentees.size;
   }
 
   function updateHijriDate() {
     const input = document.getElementById("attendanceDate").value;
     const hijriDiv = document.getElementById("hijriDate");
-
-    if (!input) {
-      hijriDiv.innerText = "";
-      return;
-    }
+    if (!input) { hijriDiv.innerText = ""; return; }
 
     const date = new Date(input);
     const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
+      day: "numeric", month: "long", year: "numeric"
     }).format(date);
 
     hijriDiv.innerText = "الموافق: " + hijri + " هـ";
   }
 
   async function saveAttendance() {
-    if (!selectedClass) {
-      alert("اختر فصلًا أولاً");
-      return;
-    }
-
+    if (!selectedClass) { alert("اختر فصلًا"); return; }
     const date = document.getElementById("attendanceDate").value;
-    if (!date) {
-      alert("اختر التاريخ");
-      return;
-    }
+    if (!date) { alert("اختر التاريخ"); return; }
 
     const res = await fetch("/api/saveAttendance", {
       method: "POST",
