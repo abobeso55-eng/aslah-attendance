@@ -23,28 +23,39 @@ header{
 }
 .container{padding:25px}
 
-.cards{
+/* بطاقات الملخص */
+.summary{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:20px;
   margin-bottom:30px;
 }
-
 .card{
   background:white;
   border-radius:14px;
   padding:20px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
+.card h3{margin:0 0 10px}
 
 .good{color:#198754}
 .bad{color:#dc3545}
+.info{color:#0d6efd}
 
-canvas{
+/* رسم */
+.chart-box{
   background:white;
   border-radius:14px;
-  padding:15px;
+  padding:20px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
+  margin-bottom:30px;
+}
+
+/* بطاقات الفصول */
+.classes{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;
 }
 </style>
 </head>
@@ -55,11 +66,35 @@ canvas{
 
 <div class="container">
 
-  <h2>ملخص اليوم</h2>
-  <div class="cards" id="summaryCards"></div>
+  <!-- ✅ ملخص عام -->
+  <div class="summary">
+    <div class="card">
+      <h3>👥 إجمالي الطلاب</h3>
+      <div id="totalStudents" class="info">0</div>
+    </div>
+    <div class="card">
+      <h3>✅ نسبة الحضور</h3>
+      <div id="presentPercent" class="good">0%</div>
+    </div>
+    <div class="card">
+      <h3>❌ نسبة الغياب</h3>
+      <div id="absentPercent" class="bad">0%</div>
+    </div>
+    <div class="card">
+      <h3>🚫 عدد الغائبين</h3>
+      <div id="absentCount" class="bad">0</div>
+    </div>
+  </div>
 
-  <h2>الرسم البياني للغياب حسب الفصول</h2>
-  <canvas id="attendanceChart" height="120"></canvas>
+  <!-- ✅ رسم النسبة -->
+  <div class="chart-box">
+    <h3>نسبة الحضور والغياب</h3>
+    <canvas id="percentChart" height="120"></canvas>
+  </div>
+
+  <!-- ✅ الغياب حسب الفصول -->
+  <h3>الغياب حسب الفصول</h3>
+  <div class="classes" id="classCards"></div>
 
 </div>
 
@@ -71,16 +106,13 @@ const classes=[
 ];
 
 const today=new Date().toISOString().split("T")[0];
-const cards=document.getElementById("summaryCards");
 
-let chartLabels=[];
-let chartAbsent=[];
-let chartPresent=[];
+let totalStudents=0;
+let totalAbsent=0;
+
+const cards=document.getElementById("classCards");
 
 (async ()=>{
-  let totalStudents=0;
-  let totalAbsent=0;
-
   for(const cls of classes){
     const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
     const data=await res.json();
@@ -88,64 +120,42 @@ let chartPresent=[];
     totalStudents+=data.total;
     totalAbsent+=data.absent;
 
-    chartLabels.push(cls);
-    chartAbsent.push(data.absent);
-    chartPresent.push(data.present);
-
     const div=document.createElement("div");
     div.className="card";
     div.innerHTML=`
       <h3>${cls}</h3>
-      <p class="good">✅ الحاضر: ${data.present}</p>
-      <p class="bad">❌ الغائب: ${data.absent}</p>
+      <div class="good">✅ حاضر: ${data.present}</div>
+      <div class="bad">❌ غائب: ${data.absent}</div>
     `;
     cards.appendChild(div);
   }
 
-  // بطاقة الإجمالي
-  const summary=document.createElement("div");
-  summary.className="card";
-  summary.innerHTML=`
-    <h3>الإجمالي</h3>
-    <p class="good">✅ الحاضر: ${totalStudents-totalAbsent}</p>
-    <p class="bad">❌ الغائب: ${totalAbsent}</p>
-  `;
-  cards.prepend(summary);
+  const present=totalStudents-totalAbsent;
+  const presentPct=((present/totalStudents)*100).toFixed(1);
+  const absentPct=((totalAbsent/totalStudents)*100).toFixed(1);
 
-  drawChart();
+  document.getElementById("totalStudents").innerText=totalStudents;
+  document.getElementById("absentCount").innerText=totalAbsent;
+  document.getElementById("presentPercent").innerText=presentPct+"%";
+  document.getElementById("absentPercent").innerText=absentPct+"%";
+
+  drawChart(present, totalAbsent);
 })();
 
-function drawChart(){
-  const ctx=document.getElementById("attendanceChart").getContext("2d");
-
+function drawChart(present, absent){
+  const ctx=document.getElementById("percentChart").getContext("2d");
   new Chart(ctx,{
-    type:"bar",
+    type:"doughnut",
     data:{
-      labels:chartLabels,
-      datasets:[
-        {
-          label:"الحاضر",
-          data:chartPresent,
-          backgroundColor:"#2ecc71"
-        },
-        {
-          label:"الغائب",
-          data:chartAbsent,
-          backgroundColor:"#e74c3c"
-        }
-      ]
+      labels:["حضور","غياب"],
+      datasets:[{
+        data:[present,absent],
+        backgroundColor:["#2ecc71","#e74c3c"]
+      }]
     },
     options:{
-      responsive:true,
       plugins:{
-        legend:{position:"top"},
-        title:{
-          display:true,
-          text:"مقارنة الحضور والغياب حسب الفصول"
-        }
-      },
-      scales:{
-        y:{beginAtZero:true}
+        legend:{position:"bottom"}
       }
     }
   });
