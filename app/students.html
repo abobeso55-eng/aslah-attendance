@@ -15,7 +15,6 @@
       color: #2c3e50;
     }
 
-    /* الشريط الجانبي */
     .sidebar {
       width: 260px;
       background: #1f8f55;
@@ -26,8 +25,8 @@
     }
 
     .sidebar h2 {
-      margin-top: 0;
       text-align: center;
+      margin-top: 0;
     }
 
     .class-item {
@@ -49,7 +48,6 @@
       color: #1f8f55;
     }
 
-    /* المحتوى */
     .content {
       flex-grow: 1;
       padding: 30px;
@@ -68,11 +66,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-    }
-
-    .top-bar input {
-      padding: 6px 10px;
-      font-size: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     table {
@@ -120,8 +115,10 @@
       font-size: 15px;
     }
 
-    .save-btn:hover {
-      background: #157347;
+    .hijri {
+      font-size: 14px;
+      color: #555;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -147,8 +144,9 @@
     <div class="top-bar">
       <h2 id="title">اختر فصلًا لتسجيل الغياب</h2>
       <div>
-        التاريخ:
-        <input type="date" id="attendanceDate">
+        📅 التاريخ:
+        <input type="date" id="attendanceDate" onchange="updateHijriDate()">
+        <div id="hijriDate" class="hijri"></div>
       </div>
     </div>
 
@@ -181,7 +179,6 @@
   const table = document.getElementById("attendanceTable");
   const title = document.getElementById("title");
 
-  // اختيار فصل
   document.querySelectorAll(".class-item").forEach(item => {
     item.addEventListener("click", async () => {
       document.querySelectorAll(".class-item").forEach(x => x.classList.remove("active"));
@@ -195,7 +192,6 @@
     });
   });
 
-  // تحميل الطلاب من API
   async function loadStudents(className) {
     table.innerHTML = `<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>`;
 
@@ -219,7 +215,6 @@
     });
   }
 
-  // تبديل حاضر / غائب
   function toggleStatus(btn, name) {
     if (btn.classList.contains("present")) {
       btn.classList.remove("present");
@@ -234,7 +229,25 @@
     }
   }
 
-  // حفظ الغياب
+  function updateHijriDate() {
+    const input = document.getElementById("attendanceDate").value;
+    const hijriDiv = document.getElementById("hijriDate");
+
+    if (!input) {
+      hijriDiv.innerText = "";
+      return;
+    }
+
+    const date = new Date(input);
+    const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }).format(date);
+
+    hijriDiv.innerText = "الموافق: " + hijri + " هـ";
+  }
+
   async function saveAttendance() {
     if (!selectedClass) {
       alert("اختر فصلًا أولاً");
