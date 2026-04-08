@@ -2,69 +2,80 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تسجيل الغياب</title>
 
 <style>
+:root{
+  --green:#1f8f55;
+  --red:#dc3545;
+  --bg:#f4f6f5;
+}
+
 body{
-  font-family:'Cairo',Arial,sans-serif;
   margin:0;
-  background:#f4f6f5;
+  font-family:'Cairo',Arial,sans-serif;
+  background:var(--bg);
   color:#2c3e50;
 }
 
 /* ===== Header ===== */
 header{
-  background:#1f8f55;
+  background:var(--green);
   color:white;
-  padding:15px 25px;
-}
-.header-inner{
+  padding:14px 16px;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
-.title{
-  font-size:20px;
-  font-weight:bold;
+header h1{
+  font-size:18px;
+  margin:0;
 }
-.report-btn{
+header button{
   background:white;
-  color:#1f8f55;
+  color:var(--green);
   border:none;
-  padding:8px 14px;
+  padding:6px 12px;
   border-radius:8px;
+  font-size:14px;
   cursor:pointer;
 }
 
 /* ===== Layout ===== */
-.container{padding:25px}
+.container{
+  padding:16px;
+}
 
-/* ===== Cards ===== */
-.cards{
+/* ===== Classes ===== */
+.classes{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:20px;
+  grid-template-columns:1fr;
+  gap:14px;
 }
-.card{
+
+.class-card{
   background:white;
-  border-radius:12px;
-  padding:20px;
+  border-radius:14px;
+  padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  text-align:center;
 }
-.card h3{
-  margin:0 0 10px;
+.class-card h3{
+  margin:0 0 8px;
+  font-size:18px;
 }
-.card .count{
+.class-card .count{
   color:#777;
-  margin-bottom:15px;
+  margin-bottom:12px;
 }
-.card button{
-  background:#1f8f55;
+.class-card button{
+  width:100%;
+  background:var(--green);
   color:white;
   border:none;
-  padding:8px 16px;
-  border-radius:8px;
+  padding:10px;
+  font-size:16px;
+  border-radius:10px;
   cursor:pointer;
 }
 
@@ -75,65 +86,88 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:20px;
+  margin-bottom:12px;
 }
-.back-btn{
+.toolbar button{
   background:#6c757d;
   color:white;
   border:none;
-  padding:8px 14px;
+  padding:8px 12px;
   border-radius:8px;
-  cursor:pointer;
-}
-.save-btn{
-  background:#198754;
-  color:white;
-  border:none;
-  padding:8px 18px;
-  border-radius:8px;
-  cursor:pointer;
+  font-size:14px;
 }
 
 .student{
   background:white;
-  border-radius:8px;
-  padding:10px 15px;
+  border-radius:10px;
+  padding:12px 14px;
   margin-bottom:10px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
 }
+.student span{
+  font-size:16px;
+}
+
 .status-btn{
   border:none;
-  padding:4px 12px;
-  border-radius:6px;
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:14px;
   cursor:pointer;
 }
-.present{background:#d1e7dd;color:#0f5132}
-.absent{background:#f8d7da;color:#842029}
+.present{
+  background:#d1e7dd;
+  color:#0f5132;
+}
+.absent{
+  background:#f8d7da;
+  color:#842029;
+}
+
+/* ===== Save Button Bottom ===== */
+.save-bottom{
+  margin-top:20px;
+}
+.save-bottom button{
+  width:100%;
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:14px;
+  font-size:18px;
+  border-radius:14px;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="title">تسجيل الغياب اليومي</div>
-    <button class="report-btn" onclick="location.href='reports.html
+  <h1>تسجيل الغياب</h1>
+  <button onclick="location.href='reportser>
 
 <div class="container">
 
   <!-- ===== الفصول ===== -->
-  <div id="classesView" class="cards"></div>
+  <div id="classesView" class="classes"></div>
 
   <!-- ===== الغياب ===== -->
   <div id="attendanceView" class="hidden">
     <div class="toolbar">
-      <button class="back-btn" onclick="backToClasses()">⬅️ الرجوع للفصول</button>
-      <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+      <button onclick="backToClasses()">⬅️ رجوع</button>
+      <strong id="classTitle"></strong>
     </div>
-    <h3 id="classTitle"></h3>
+
     <div id="studentsList"></div>
+
+    <!-- ✅ زر الحفظ أسفل الأسماء -->
+    <div class="save-bottom">
+      <button onclick="saveAttendance()">💾 حفظ الغياب</button>
+    </div>
   </div>
 
 </div>
@@ -143,7 +177,7 @@ const today = new Date().toISOString().split("T")[0];
 let selectedClass = null;
 let absentees = [];
 
-// ===== تحميل الفصول =====
+// تحميل الفصول
 loadClasses();
 
 async function loadClasses(){
@@ -159,7 +193,7 @@ async function loadClasses(){
     const sdata = await sres.json();
 
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "class-card";
     card.innerHTML = `
       <h3>${cls}</h3>
       <div class="count">عدد الطلاب: ${sdata.students.length}</div>
@@ -169,7 +203,6 @@ async function loadClasses(){
   }
 }
 
-// ===== فتح فصل =====
 async function openClass(cls){
   selectedClass = cls;
   absentees = [];
@@ -213,7 +246,11 @@ async function openClass(cls){
   });
 }
 
-// ===== حفظ =====
+function backToClasses(){
+  document.getElementById("attendanceView").classList.add("hidden");
+  document.getElementById("classesView").classList.remove("hidden");
+}
+
 async function saveAttendance(){
   await fetch("/api/saveAttendance",{
     method:"POST",
@@ -227,12 +264,6 @@ async function saveAttendance(){
 
   alert("✅ تم حفظ الغياب");
   backToClasses();
-}
-
-// ===== رجوع =====
-function backToClasses(){
-  document.getElementById("attendanceView").classList.add("hidden");
-  document.getElementById("classesView").classList.remove("hidden");
 }
 </script>
 
