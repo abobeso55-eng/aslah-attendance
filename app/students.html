@@ -9,6 +9,7 @@
 :root{
   --green:#1f8f55;
   --red:#dc3545;
+  --gray:#adb5bd;
   --bg:#f4f6f5;
   --card:#ffffff;
 }
@@ -28,7 +29,7 @@ header{
 .header-inner{
   max-width:900px;
   margin:auto;
-  padding:14px 16px;
+  padding:16px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -36,24 +37,25 @@ header{
 .school{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:16px;
 }
 .school img{
-  height:48px;
+  height:64px; /* ✅ تكبير الشعار */
 }
 .school-text{
-  line-height:1.4;
   font-size:14px;
+  line-height:1.5;
 }
 .school-text strong{
   font-size:16px;
 }
-header button{
+.header-inner button{
   background:var(--green);
   color:white;
   border:none;
-  padding:8px 14px;
-  border-radius:8px;
+  padding:10px 16px;
+  border-radius:10px;
+  font-size:14px;
   cursor:pointer;
 }
 
@@ -76,14 +78,11 @@ header button{
   border-radius:14px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  border-top:6px solid #ccc;
+  border-top:6px solid var(--gray);
 }
-.class-card.ok{
-  border-top-color:var(--green);
-}
-.class-card.absent{
-  border-top-color:var(--red);
-}
+.class-card.ok{ border-top-color:var(--green); }
+.class-card.absent{ border-top-color:var(--red); }
+
 .class-card h3{
   margin:0 0 6px;
 }
@@ -93,7 +92,7 @@ header button{
 }
 .class-card .status{
   font-size:14px;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 .class-card button{
   width:100%;
@@ -131,16 +130,10 @@ header button{
   border-radius:20px;
   cursor:pointer;
 }
-.present{
-  background:#d1e7dd;
-  color:#0f5132;
-}
-.absent{
-  background:#f8d7da;
-  color:#842029;
-}
+.present{background:#d1e7dd;color:#0f5132}
+.absent{background:#f8d7da;color:#842029}
 
-/* ===== Actions ===== */
+/* ===== Actions inside class ===== */
 .actions{
   margin-top:20px;
 }
@@ -169,21 +162,20 @@ header button{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png">
+      <img src="assets/moe-logo.png" alt="وزارة التعليم">
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
-    <button onclick="location.href='header>
+    <!-- ✅ زر واحد فقط -->
+    <button onclick="location.href='"container">
 
-<div class="container">
-
-  <!-- الصفحة الرئيسية -->
+  <!-- ✅ الصفحة الرئيسية: بطاقات الفصول -->
   <div id="classesView" class="classes"></div>
 
-  <!-- داخل الفصل -->
+  <!-- ✅ داخل الفصل -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -198,59 +190,82 @@ header button{
 
 <script>
 const today = new Date().toISOString().split("T")[0];
-let selectedClass=null;
-let absentees=[];
-const classCards={};
+let selectedClass = null;
+let absentees = [];
+const classCards = {};
 
+// تحميل الفصول مع تلوين تلقائي
 loadClasses();
 
 async function loadClasses(){
-  const res=await fetch("/api/getClasses");
-  const data=await res.json();
-  const classes=data.classes;
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
+  const classes = data.classes;
 
-  const container=document.getElementById("classesView");
-  container.innerHTML="";
+  const container = document.getElementById("classesView");
+  container.innerHTML = "";
 
   for(const cls of classes){
-    const sres=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-    const sdata=await sres.json();
+    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const sdata = await sres.json();
 
-    const card=document.createElement("div");
-    card.className="class-card";
-    card.innerHTML=`
+    const arep = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
+    const arepData = await arep.json();
+    const absentCount = arepData.absent || 0;
+
+    const card = document.createElement("div");
+    card.className = "class-card";
+
+    let statusText = "لم يتم تسجيل الغياب";
+
+    if(arepData.success){
+      if(absentCount === 0){
+        card.classList.add("ok");
+        statusText = "تم تسجيل الغياب – لا يوجد غياب";
+      }else{
+        card.classList.add("absent");
+        statusText = `تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
+      }
+    }
+
+    card.innerHTML = `
       <h3>${cls}</h3>
       <div class="count">عدد الطلاب: ${sdata.students.length}</div>
-      <div class="status">لم يتم تسجيل الغياب</div>
+      <div class="status">${statusText}</div>
       <button onclick="openClass('${cls}')">تسجيل الغياب</button>
     `;
+
     container.appendChild(card);
-    classCards[cls]=card;
+    classCards[cls] = card;
   }
 }
 
 async function openClass(cls){
-  selectedClass=cls;
-  absentees=[];
+  selectedClass = cls;
+  absentees = [];
+
   document.getElementById("classesView").classList.add("hidden");
   document.getElementById("attendanceView").classList.remove("hidden");
-  document.getElementById("classTitle").innerText=cls;
+  document.getElementById("classTitle").innerText = cls;
 
-  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data=await res.json();
-  const list=document.getElementById("studentsList");
-  list.innerHTML="";
+  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data = await res.json();
+
+  const list = document.getElementById("studentsList");
+  list.innerHTML = "";
 
   data.students.forEach(s=>{
-    const row=document.createElement("div");
-    row.className="student";
-    const name=document.createElement("span");
-    name.innerText=s.Name;
-    const btn=document.createElement("button");
-    btn.className="status-btn present";
-    btn.innerText="حاضر";
+    const row = document.createElement("div");
+    row.className = "student";
 
-    btn.onclick=()=>{
+    const name = document.createElement("span");
+    name.innerText = s.Name;
+
+    const btn = document.createElement("button");
+    btn.className = "status-btn present";
+    btn.innerText = "حاضر";
+
+    btn.onclick = () => {
       if(btn.classList.contains("present")){
         btn.classList.replace("present","absent");
         btn.innerText="غائب";
@@ -258,7 +273,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees=absentees.filter(n=>n!==s.Name);
+        absentees = absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -279,19 +294,7 @@ async function saveAttendance(){
     })
   });
 
-  const card=classCards[selectedClass];
-  const status=card.querySelector(".status");
-
-  if(absentees.length>0){
-    card.classList.add("absent");
-    card.classList.remove("ok");
-    status.innerText=`تم تسجيل الغياب – عدد الغائبين: ${absentees.length}`;
-  }else{
-    card.classList.add("ok");
-    card.classList.remove("absent");
-    status.innerText="تم تسجيل الغياب – لا يوجد غياب";
-  }
-
+  loadClasses();
   backToClasses();
 }
 
