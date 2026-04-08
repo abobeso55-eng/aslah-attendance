@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>تقرير الغياب اليومي</title>
+<title>تقرير الغياب</title>
 
 <style>
 body{
@@ -30,6 +30,9 @@ header{
   gap:15px;
 }
 .school img{height:60px}
+.school-text{
+  line-height:1.4;
+}
 .school-text .ministry,
 .school-text .admin{
   color:#1f8f55;
@@ -49,15 +52,26 @@ header{
 /* ===== Layout ===== */
 .container{padding:25px}
 
-/* ===== Date ===== */
-.date-box{
-  margin-bottom:20px;
+/* ===== Date & Print ===== */
+.toolbar{
   display:flex;
+  justify-content:space-between;
   align-items:center;
+  flex-wrap:wrap;
   gap:10px;
+  margin-bottom:20px;
 }
-.date-box input{
+.toolbar input{
   padding:6px 10px;
+  font-size:14px;
+}
+.print-btn{
+  background:#0d6efd;
+  color:white;
+  border:none;
+  padding:8px 18px;
+  border-radius:8px;
+  cursor:pointer;
   font-size:14px;
 }
 
@@ -132,6 +146,12 @@ header{
   font-size:14px;
 }
 .absent-card li:last-child{border:none}
+
+/* ===== Print ===== */
+@media print{
+  body{background:white}
+  .toolbar{display:none}
+}
 </style>
 </head>
 
@@ -140,23 +160,29 @@ header{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png">
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
       <div class="school-text">
         <div class="ministry">وزارة التعليم</div>
         <div class="admin">إدارة التعليم بمنطقة الباحة</div>
         <div class="name">متوسطة العسلة</div>
       </div>
     </div>
-    <div class="title">تقرير الغياب</div>
+    <div class="title">
+      تقرير الغياب<br>
+      <span id="reportDateText"></span>
+    </div>
   </div>
 </header>
 
 <div class="container">
 
-  <!-- ✅ اختيار التاريخ -->
-  <div class="date-box">
-    📅 التاريخ:
-    <input type="date" id="reportDate">
+  <!-- ✅ التاريخ + الطباعة -->
+  <div class="toolbar">
+    <div>
+      📅 التاريخ:
+      <input type="date" id="reportDate">
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
   </div>
 
   <!-- ✅ الإحصائيات -->
@@ -190,21 +216,34 @@ header{
 
 <script>
 const dateInput = document.getElementById("reportDate");
+const reportDateText = document.getElementById("reportDateText");
 
-// ✅ اليوم افتراضيًا
-const today = new Date().toISOString().split("T")[0];
-dateInput.value = today;
+// ✅ تاريخ اليوم افتراضيًا
+const today = new Date();
+const todayISO = today.toISOString().split("T")[0];
+dateInput.value = todayISO;
+updateDateText(today);
 
-// ✅ تحميل التقرير تلقائيًا
-loadReport(today);
+// تحميل تقرير اليوم
+loadReport(todayISO);
 
-// ✅ عند تغيير التاريخ
+// عند تغيير التاريخ
 dateInput.onchange = () => {
+  const d = new Date(dateInput.value);
+  updateDateText(d);
   loadReport(dateInput.value);
 };
 
+function updateDateText(date){
+  const greg = date.toLocaleDateString("ar-SA");
+  const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+    day:"numeric", month:"long", year:"numeric"
+  }).format(date);
+
+  reportDateText.innerText = `(${greg} | ${hijri})`;
+}
+
 async function loadReport(date){
-  // جلب الفصول
   const classRes = await fetch("/api/getClasses");
   const classData = await classRes.json();
   const classes = classData.classes;
