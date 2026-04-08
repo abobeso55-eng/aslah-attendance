@@ -8,9 +8,9 @@
 <style>
 :root{
   --green:#1f8f55;
+  --red:#dc3545;
   --bg:#f4f6f5;
   --card:#ffffff;
-  --red:#dc3545;
 }
 
 body{
@@ -33,9 +33,9 @@ header{
   justify-content:space-between;
   align-items:center;
 }
-header h1{
-  font-size:18px;
-  margin:0;
+.header-title{
+  font-size:16px;
+  line-height:1.4;
 }
 header button{
   background:white;
@@ -66,6 +66,13 @@ header button{
   border-radius:14px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid #ccc;
+}
+.class-card.ok{
+  border-top-color:var(--green);
+}
+.class-card.absent{
+  border-top-color:var(--red);
 }
 .class-card h3{
   margin:0 0 8px;
@@ -73,7 +80,11 @@ header button{
 }
 .class-card .count{
   color:#777;
-  margin-bottom:12px;
+  margin-bottom:6px;
+}
+.class-card .status{
+  font-size:14px;
+  margin-bottom:10px;
 }
 .class-card button{
   width:100%;
@@ -96,19 +107,9 @@ header button{
   box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 
-.toolbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px;
-}
-.toolbar button{
-  background:#6c757d;
-  color:white;
-  border:none;
-  padding:6px 12px;
-  border-radius:8px;
-  cursor:pointer;
+.attendance h2{
+  margin-top:0;
+  margin-bottom:12px;
 }
 
 .student{
@@ -136,19 +137,26 @@ header button{
   color:#842029;
 }
 
-/* ===== Save ===== */
-.save-bottom{
+/* ===== Actions ===== */
+.actions{
   margin-top:20px;
 }
-.save-bottom button{
+.actions button{
   width:100%;
+  padding:14px;
+  font-size:16px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+}
+.save-btn{
   background:var(--green);
   color:white;
-  border:none;
-  padding:14px;
-  font-size:17px;
-  border-radius:14px;
-  cursor:pointer;
+  margin-bottom:10px;
+}
+.back-btn{
+  background:#6c757d;
+  color:white;
 }
 </style>
 </head>
@@ -157,26 +165,26 @@ header button{
 
 <header>
   <div class="header-inner">
-    <h1>تسجيل الغياب</h1>
-    <button onclick="location.href='reportsv>
-</header>
+    <div class="header-title">
+      وزارة التعليم<br>
+      إدارة التعليم بمنطقة الباحة<br>
+      <strong>متوسطة العسلة</strong>
+    </div>
+    <button onclick="location.href='reports.html'eader>
 
 <div class="container">
 
-  <!-- ===== الفصول ===== -->
+  <!-- ===== الصفحة الرئيسية: بطاقات الفصول ===== -->
   <div id="classesView" class="classes"></div>
 
-  <!-- ===== الغياب ===== -->
+  <!-- ===== داخل الفصل ===== -->
   <div id="attendanceView" class="attendance hidden">
-    <div class="toolbar">
-      <button onclick="backToClasses()">⬅️ رجوع</button>
-      <strong id="classTitle"></strong>
-    </div>
-
+    <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
 
-    <div class="save-bottom">
-      <button onclick="saveAttendance()">💾 حفظ الغياب</button>
+    <div class="actions">
+      <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+      <button class="back-btn" onclick="backToClasses()">⬅️ الرجوع للفصول</button>
     </div>
   </div>
 
@@ -186,8 +194,9 @@ header button{
 const today = new Date().toISOString().split("T")[0];
 let selectedClass = null;
 let absentees = [];
+const classCards = {}; // للاحتفاظ ببطاقات الفصول
 
-// تحميل الفصول
+/* تحميل الفصول */
 loadClasses();
 
 async function loadClasses(){
@@ -207,12 +216,16 @@ async function loadClasses(){
     card.innerHTML = `
       <h3>${cls}</h3>
       <div class="count">عدد الطلاب: ${sdata.students.length}</div>
+      <div class="status">لم يتم تسجيل الغياب</div>
       <button onclick="openClass('${cls}')">تسجيل الغياب</button>
     `;
     container.appendChild(card);
+
+    classCards[cls] = card;
   }
 }
 
+/* فتح فصل */
 async function openClass(cls){
   selectedClass = cls;
   absentees = [];
@@ -256,11 +269,7 @@ async function openClass(cls){
   });
 }
 
-function backToClasses(){
-  document.getElementById("attendanceView").classList.add("hidden");
-  document.getElementById("classesView").classList.remove("hidden");
-}
-
+/* حفظ الغياب */
 async function saveAttendance(){
   await fetch("/api/saveAttendance",{
     method:"POST",
@@ -272,8 +281,27 @@ async function saveAttendance(){
     })
   });
 
-  alert("✅ تم حفظ الغياب");
+  // ✅ تحديث بطاقة الفصل
+  const card = classCards[selectedClass];
+  const statusDiv = card.querySelector(".status");
+
+  if(absentees.length > 0){
+    card.classList.remove("ok");
+    card.classList.add("absent");
+    statusDiv.innerText = `تم تسجيل الغياب – عدد الغائبين: ${absentees.length}`;
+  }else{
+    card.classList.remove("absent");
+    card.classList.add("ok");
+    statusDiv.innerText = "تم تسجيل الغياب – لا يوجد غياب";
+  }
+
   backToClasses();
+}
+
+/* رجوع */
+function backToClasses(){
+  document.getElementById("attendanceView").classList.add("hidden");
+  document.getElementById("classesView").classList.remove("hidden");
 }
 </script>
 
