@@ -22,28 +22,38 @@ body{
 
 /* ===== Header ===== */
 header{
-  background:var(--green);
-  color:white;
-  padding:14px 16px;
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
 }
 .header-inner{
   max-width:900px;
   margin:auto;
+  padding:14px 16px;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
-.header-title{
-  font-size:16px;
+.school{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school img{
+  height:48px;
+}
+.school-text{
   line-height:1.4;
+  font-size:14px;
+}
+.school-text strong{
+  font-size:16px;
 }
 header button{
-  background:white;
-  color:var(--green);
+  background:var(--green);
+  color:white;
   border:none;
-  padding:6px 12px;
+  padding:8px 14px;
   border-radius:8px;
-  font-size:14px;
   cursor:pointer;
 }
 
@@ -75,8 +85,7 @@ header button{
   border-top-color:var(--red);
 }
 .class-card h3{
-  margin:0 0 8px;
-  font-size:17px;
+  margin:0 0 6px;
 }
 .class-card .count{
   color:#777;
@@ -107,11 +116,6 @@ header button{
   box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 
-.attendance h2{
-  margin-top:0;
-  margin-bottom:12px;
-}
-
 .student{
   display:flex;
   justify-content:space-between;
@@ -125,7 +129,6 @@ header button{
   border:none;
   padding:6px 14px;
   border-radius:20px;
-  font-size:14px;
   cursor:pointer;
 }
 .present{
@@ -165,19 +168,22 @@ header button{
 
 <header>
   <div class="header-inner">
-    <div class="header-title">
-      وزارة التعليم<br>
-      إدارة التعليم بمنطقة الباحة<br>
-      <strong>متوسطة العسلة</strong>
+    <div class="school">
+      <img src="assets/moe-logo.png">
+      <div class="school-text">
+        وزارة التعليم<br>
+        إدارة التعليم بمنطقة الباحة<br>
+        <strong>متوسطة العسلة</strong>
+      </div>
     </div>
-    <button onclick="location.href='reports.html'eader>
+    <button onclick="location.href='header>
 
 <div class="container">
 
-  <!-- ===== الصفحة الرئيسية: بطاقات الفصول ===== -->
+  <!-- الصفحة الرئيسية -->
   <div id="classesView" class="classes"></div>
 
-  <!-- ===== داخل الفصل ===== -->
+  <!-- داخل الفصل -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -192,66 +198,59 @@ header button{
 
 <script>
 const today = new Date().toISOString().split("T")[0];
-let selectedClass = null;
-let absentees = [];
-const classCards = {}; // للاحتفاظ ببطاقات الفصول
+let selectedClass=null;
+let absentees=[];
+const classCards={};
 
-/* تحميل الفصول */
 loadClasses();
 
 async function loadClasses(){
-  const res = await fetch("/api/getClasses");
-  const data = await res.json();
-  const classes = data.classes;
+  const res=await fetch("/api/getClasses");
+  const data=await res.json();
+  const classes=data.classes;
 
-  const container = document.getElementById("classesView");
-  container.innerHTML = "";
+  const container=document.getElementById("classesView");
+  container.innerHTML="";
 
   for(const cls of classes){
-    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-    const sdata = await sres.json();
+    const sres=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const sdata=await sres.json();
 
-    const card = document.createElement("div");
-    card.className = "class-card";
-    card.innerHTML = `
+    const card=document.createElement("div");
+    card.className="class-card";
+    card.innerHTML=`
       <h3>${cls}</h3>
       <div class="count">عدد الطلاب: ${sdata.students.length}</div>
       <div class="status">لم يتم تسجيل الغياب</div>
       <button onclick="openClass('${cls}')">تسجيل الغياب</button>
     `;
     container.appendChild(card);
-
-    classCards[cls] = card;
+    classCards[cls]=card;
   }
 }
 
-/* فتح فصل */
 async function openClass(cls){
-  selectedClass = cls;
-  absentees = [];
-
+  selectedClass=cls;
+  absentees=[];
   document.getElementById("classesView").classList.add("hidden");
   document.getElementById("attendanceView").classList.remove("hidden");
-  document.getElementById("classTitle").innerText = cls;
+  document.getElementById("classTitle").innerText=cls;
 
-  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data = await res.json();
-
-  const list = document.getElementById("studentsList");
-  list.innerHTML = "";
+  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data=await res.json();
+  const list=document.getElementById("studentsList");
+  list.innerHTML="";
 
   data.students.forEach(s=>{
-    const row = document.createElement("div");
-    row.className = "student";
+    const row=document.createElement("div");
+    row.className="student";
+    const name=document.createElement("span");
+    name.innerText=s.Name;
+    const btn=document.createElement("button");
+    btn.className="status-btn present";
+    btn.innerText="حاضر";
 
-    const name = document.createElement("span");
-    name.innerText = s.Name;
-
-    const btn = document.createElement("button");
-    btn.className = "status-btn present";
-    btn.innerText = "حاضر";
-
-    btn.onclick = () => {
+    btn.onclick=()=>{
       if(btn.classList.contains("present")){
         btn.classList.replace("present","absent");
         btn.innerText="غائب";
@@ -259,7 +258,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees = absentees.filter(n=>n!==s.Name);
+        absentees=absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -269,7 +268,6 @@ async function openClass(cls){
   });
 }
 
-/* حفظ الغياب */
 async function saveAttendance(){
   await fetch("/api/saveAttendance",{
     method:"POST",
@@ -281,24 +279,22 @@ async function saveAttendance(){
     })
   });
 
-  // ✅ تحديث بطاقة الفصل
-  const card = classCards[selectedClass];
-  const statusDiv = card.querySelector(".status");
+  const card=classCards[selectedClass];
+  const status=card.querySelector(".status");
 
-  if(absentees.length > 0){
-    card.classList.remove("ok");
+  if(absentees.length>0){
     card.classList.add("absent");
-    statusDiv.innerText = `تم تسجيل الغياب – عدد الغائبين: ${absentees.length}`;
+    card.classList.remove("ok");
+    status.innerText=`تم تسجيل الغياب – عدد الغائبين: ${absentees.length}`;
   }else{
-    card.classList.remove("absent");
     card.classList.add("ok");
-    statusDiv.innerText = "تم تسجيل الغياب – لا يوجد غياب";
+    card.classList.remove("absent");
+    status.innerText="تم تسجيل الغياب – لا يوجد غياب";
   }
 
   backToClasses();
 }
 
-/* رجوع */
 function backToClasses(){
   document.getElementById("attendanceView").classList.add("hidden");
   document.getElementById("classesView").classList.remove("hidden");
