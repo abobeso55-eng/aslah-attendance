@@ -23,6 +23,7 @@ header{
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
+  gap:10px;
 }
 .school{
   display:flex;
@@ -47,6 +48,17 @@ header{
   color:#1f8f55;
   font-weight:bold;
   font-size:18px;
+}
+
+/* زر الرجوع */
+.back-btn{
+  background:#1f8f55;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
 }
 
 /* ===== Layout ===== */
@@ -150,7 +162,7 @@ header{
 /* ===== Print ===== */
 @media print{
   body{background:white}
-  .toolbar{display:none}
+  .toolbar,.back-btn{display:none}
 }
 </style>
 </head>
@@ -160,23 +172,22 @@ header{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
+      <img src="assets/moe-logo.png" alt="وزارة التعليم">
       <div class="school-text">
         <div class="ministry">وزارة التعليم</div>
         <div class="admin">إدارة التعليم بمنطقة الباحة</div>
         <div class="name">متوسطة العسلة</div>
       </div>
     </div>
+
     <div class="title">
       تقرير الغياب<br>
       <span id="reportDateText"></span>
     </div>
-  </div>
-</header>
 
-<div class="container">
+    <button class="back-btn" onclick="location.href='v class="container">
 
-  <!-- ✅ التاريخ + الطباعة -->
+  <!-- التاريخ + الطباعة -->
   <div class="toolbar">
     <div>
       📅 التاريخ:
@@ -185,7 +196,7 @@ header{
     <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
   </div>
 
-  <!-- ✅ الإحصائيات -->
+  <!-- الإحصائيات -->
   <div class="stats">
     <div class="stat">
       <h4>إجمالي الطلاب</h4>
@@ -205,10 +216,10 @@ header{
     </div>
   </div>
 
-  <!-- ✅ بطاقات الفصول -->
+  <!-- بطاقات الفصول -->
   <div class="classes" id="classCards"></div>
 
-  <!-- ✅ أسماء الغائبين -->
+  <!-- أسماء الغائبين -->
   <div class="section-title">أسماء الطلاب الغائبين</div>
   <div class="absent-groups" id="absentGroups"></div>
 
@@ -218,7 +229,7 @@ header{
 const dateInput = document.getElementById("reportDate");
 const reportDateText = document.getElementById("reportDateText");
 
-// ✅ تاريخ اليوم افتراضيًا
+// تاريخ اليوم افتراضيًا
 const today = new Date();
 const todayISO = today.toISOString().split("T")[0];
 dateInput.value = todayISO;
@@ -239,7 +250,6 @@ function updateDateText(date){
   const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
     day:"numeric", month:"long", year:"numeric"
   }).format(date);
-
   reportDateText.innerText = `(${greg} | ${hijri})`;
 }
 
@@ -264,32 +274,26 @@ async function loadReport(date){
     totalStudents += data.total;
     totalAbsent += data.absent;
 
-    // بطاقة الفصل
     const c = document.createElement("div");
     c.className = "class-card";
     c.innerHTML = `
       <h4>${cls}</h4>
-      ${
-        data.absent === 0
-          ? `<div class="ok">✅ لا يوجد غياب</div>`
-          : `<div class="bad">❌ غياب: ${data.absent}</div>`
-      }
+      ${data.absent === 0
+        ? `<div class="ok">✅ لا يوجد غياب</div>`
+        : `<div class="bad">❌ غياب: ${data.absent}</div>`}
     `;
     classCards.appendChild(c);
 
-    // أسماء الغائبين
     if(data.absentees.length > 0){
       const box = document.createElement("div");
       box.className = "absent-card";
       box.innerHTML = `<header>${cls}</header><ul></ul>`;
       const ul = box.querySelector("ul");
-
       data.absentees.forEach(name=>{
         const li = document.createElement("li");
         li.innerText = name;
         ul.appendChild(li);
       });
-
       absentGroups.appendChild(box);
     }
   }
