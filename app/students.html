@@ -11,6 +11,8 @@ body{
   background:#f4f6f5;
   color:#2c3e50;
 }
+
+/* ===== Header ===== */
 header{
   background:#ffffff;
   padding:15px 25px;
@@ -21,6 +23,7 @@ header{
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
+  gap:10px;
 }
 .school{
   display:flex;
@@ -43,6 +46,8 @@ header{
   font-weight:bold;
   font-size:18px;
 }
+
+/* زر التقارير */
 .report-btn{
   background:#0d6efd;
   color:white;
@@ -52,6 +57,7 @@ header{
   cursor:pointer;
 }
 
+/* ===== Layout ===== */
 .container{padding:25px}
 
 .toolbar{
@@ -63,7 +69,6 @@ header{
 .toolbar input{
   padding:6px 10px;
 }
-
 .save-btn{
   background:#198754;
   color:white;
@@ -73,19 +78,30 @@ header{
   cursor:pointer;
 }
 
+/* ===== Classes ===== */
 .classes{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap:20px;
 }
 
+/* بطاقة الفصل */
 .class-card{
   background:white;
   border-radius:12px;
   padding:15px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid #198754; /* افتراضي أخضر */
+}
+.class-card.absent{
+  border-top-color:#dc3545; /* أحمر عند وجود غياب */
+}
+.class-card h4{
+  margin:0 0 10px;
+  font-size:16px;
 }
 
+/* الطلاب */
 .student{
   display:flex;
   justify-content:space-between;
@@ -97,135 +113,3 @@ header{
 
 .status-btn{
   border:none;
-  padding:4px 12px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:13px;
-}
-.present{background:#d1e7dd;color:#0f5132}
-.absent{background:#f8d7da;color:#842029}
-
-@media print{
-  .report-btn,.save-btn{display:none}
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <div class="header-inner">
-    <div class="school">
-      assets/moe-logo.png
-      <div class="school-text">
-        <div class="ministry">وزارة التعليم</div>
-        <div class="admin">إدارة التعليم بمنطقة الباحة</div>
-        <div class="name">متوسطة العسلة</div>
-      </div>
-    </div>
-
-    <div class="title">تسجيل الغياب</div>
-
-    <button class="report-btn" onclick="location.href='reports.htmliv>
-</header>
-
-<div class="container">
-
-  <div class="toolbar">
-    <div>
-      📅 التاريخ:
-      <input type="date" id="attendanceDate">
-    </div>
-    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
-  </div>
-
-  <div class="classes" id="classesContainer"></div>
-
-</div>
-
-<script>
-const dateInput = document.getElementById("attendanceDate");
-dateInput.value = new Date().toISOString().split("T")[0];
-
-const classesContainer = document.getElementById("classesContainer");
-const absentees = {};
-
-// ✅ تحميل الفصول
-loadClasses();
-
-async function loadClasses(){
-  const res = await fetch("/api/getClasses");
-  const data = await res.json();
-  const classes = data.classes;
-
-  classesContainer.innerHTML = "";
-
-  for(const cls of classes){
-    absentees[cls] = [];
-
-    const card = document.createElement("div");
-    card.className = "class-card";
-    card.innerHTML = `<h4>${cls}</h4><div>جاري التحميل...</div>`;
-    classesContainer.appendChild(card);
-
-    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-    const sdata = await sres.json();
-
-    const list = document.createElement("div");
-
-    sdata.students.forEach(student=>{
-      const row = document.createElement("div");
-      row.className = "student";
-
-      const nameSpan = document.createElement("span");
-      nameSpan.innerText = student.Name; // ✅ الإصلاح هنا
-
-      const btn = document.createElement("button");
-      btn.className = "status-btn present";
-      btn.innerText = "حاضر";
-
-      btn.onclick = () => {
-        if(btn.classList.contains("present")){
-          btn.classList.remove("present");
-          btn.classList.add("absent");
-          btn.innerText = "غائب";
-          absentees[cls].push(student.Name);
-        }else{
-          btn.classList.remove("absent");
-          btn.classList.add("present");
-          btn.innerText = "حاضر";
-          absentees[cls] = absentees[cls].filter(n => n !== student.Name);
-        }
-      };
-
-      row.appendChild(nameSpan);
-      row.appendChild(btn);
-      list.appendChild(row);
-    });
-
-    card.innerHTML = `<h4>${cls}</h4>`;
-    card.appendChild(list);
-  }
-}
-
-async function saveAttendance(){
-  const date = dateInput.value;
-
-  for(const cls in absentees){
-    await fetch("/api/saveAttendance",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body:JSON.stringify({
-        className:cls,
-        date,
-        absentees:absentees[cls]
-      })
-    });
-  }
-
-  alert("✅ تم حفظ الغياب بنجاح");
-}
-</script>
-
-</body>
-</html>
