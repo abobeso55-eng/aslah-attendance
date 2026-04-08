@@ -8,8 +8,9 @@
 <style>
 :root{
   --green:#1f8f55;
-  --red:#dc3545;
   --bg:#f4f6f5;
+  --card:#ffffff;
+  --red:#dc3545;
 }
 
 body{
@@ -24,6 +25,10 @@ header{
   background:var(--green);
   color:white;
   padding:14px 16px;
+}
+.header-inner{
+  max-width:900px;
+  margin:auto;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -42,27 +47,29 @@ header button{
   cursor:pointer;
 }
 
-/* ===== Layout ===== */
+/* ===== Container ===== */
 .container{
+  max-width:900px;
+  margin:auto;
   padding:16px;
 }
 
 /* ===== Classes ===== */
 .classes{
   display:grid;
-  grid-template-columns:1fr;
-  gap:14px;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
 }
 
 .class-card{
-  background:white;
+  background:var(--card);
   border-radius:14px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 .class-card h3{
   margin:0 0 8px;
-  font-size:18px;
+  font-size:17px;
 }
 .class-card .count{
   color:#777;
@@ -74,7 +81,7 @@ header button{
   color:white;
   border:none;
   padding:10px;
-  font-size:16px;
+  font-size:15px;
   border-radius:10px;
   cursor:pointer;
 }
@@ -82,34 +89,36 @@ header button{
 /* ===== Attendance ===== */
 .hidden{display:none}
 
+.attendance{
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
 .toolbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 .toolbar button{
   background:#6c757d;
   color:white;
   border:none;
-  padding:8px 12px;
+  padding:6px 12px;
   border-radius:8px;
-  font-size:14px;
+  cursor:pointer;
 }
 
 .student{
-  background:white;
-  border-radius:10px;
-  padding:12px 14px;
-  margin-bottom:10px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  padding:10px 0;
+  border-bottom:1px solid #eee;
 }
-.student span{
-  font-size:16px;
-}
+.student:last-child{border:none}
 
 .status-btn{
   border:none;
@@ -127,7 +136,7 @@ header button{
   color:#842029;
 }
 
-/* ===== Save Button Bottom ===== */
+/* ===== Save ===== */
 .save-bottom{
   margin-top:20px;
 }
@@ -137,7 +146,7 @@ header button{
   color:white;
   border:none;
   padding:14px;
-  font-size:18px;
+  font-size:17px;
   border-radius:14px;
   cursor:pointer;
 }
@@ -147,8 +156,10 @@ header button{
 <body>
 
 <header>
-  <h1>تسجيل الغياب</h1>
-  <button onclick="location.href='reportser>
+  <div class="header-inner">
+    <h1>تسجيل الغياب</h1>
+    <button onclick="location.href='reportsv>
+</header>
 
 <div class="container">
 
@@ -156,7 +167,7 @@ header button{
   <div id="classesView" class="classes"></div>
 
   <!-- ===== الغياب ===== -->
-  <div id="attendanceView" class="hidden">
+  <div id="attendanceView" class="attendance hidden">
     <div class="toolbar">
       <button onclick="backToClasses()">⬅️ رجوع</button>
       <strong id="classTitle"></strong>
@@ -164,7 +175,6 @@ header button{
 
     <div id="studentsList"></div>
 
-    <!-- ✅ زر الحفظ أسفل الأسماء -->
     <div class="save-bottom">
       <button onclick="saveAttendance()">💾 حفظ الغياب</button>
     </div>
