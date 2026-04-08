@@ -11,8 +11,6 @@ body{
   background:#f4f6f5;
   color:#2c3e50;
 }
-
-/* ===== Header ===== */
 header{
   background:#ffffff;
   padding:15px 25px;
@@ -23,7 +21,6 @@ header{
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
-  gap:10px;
 }
 .school{
   display:flex;
@@ -31,9 +28,6 @@ header{
   gap:15px;
 }
 .school img{height:60px}
-.school-text{
-  line-height:1.4;
-}
 .school-text .ministry,
 .school-text .admin{
   color:#1f8f55;
@@ -49,8 +43,6 @@ header{
   font-weight:bold;
   font-size:18px;
 }
-
-/* زر التقارير */
 .report-btn{
   background:#0d6efd;
   color:white;
@@ -58,25 +50,20 @@ header{
   padding:8px 14px;
   border-radius:8px;
   cursor:pointer;
-  font-size:14px;
 }
 
-/* ===== Layout ===== */
 .container{padding:25px}
 
-/* ===== Controls ===== */
 .toolbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
-  gap:10px;
   margin-bottom:20px;
 }
 .toolbar input{
   padding:6px 10px;
-  font-size:14px;
 }
+
 .save-btn{
   background:#198754;
   color:white;
@@ -84,28 +71,21 @@ header{
   padding:8px 18px;
   border-radius:8px;
   cursor:pointer;
-  font-size:14px;
 }
 
-/* ===== Classes ===== */
 .classes{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:15px;
-}
-.class-card{
-  background:white;
-  border-radius:10px;
-  padding:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-}
-.class-card h4{
-  margin:0 0 10px;
-  color:#1f8f55;
-  font-size:16px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
 }
 
-/* ===== Students ===== */
+.class-card{
+  background:white;
+  border-radius:12px;
+  padding:15px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
 .student{
   display:flex;
   justify-content:space-between;
@@ -125,7 +105,6 @@ header{
 .present{background:#d1e7dd;color:#0f5132}
 .absent{background:#f8d7da;color:#842029}
 
-/* ===== Print ===== */
 @media print{
   .report-btn,.save-btn{display:none}
 }
@@ -147,13 +126,11 @@ header{
 
     <div class="title">تسجيل الغياب</div>
 
-    <!-- ✅ زر الانتقال إلى التقارير -->
     <button class="report-btn" onclick="location.href='reports.htmliv>
 </header>
 
 <div class="container">
 
-  <!-- التاريخ -->
   <div class="toolbar">
     <div>
       📅 التاريخ:
@@ -162,20 +139,18 @@ header{
     <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
   </div>
 
-  <!-- الفصول والطلاب -->
   <div class="classes" id="classesContainer"></div>
 
 </div>
 
 <script>
 const dateInput = document.getElementById("attendanceDate");
-const today = new Date().toISOString().split("T")[0];
-dateInput.value = today;
+dateInput.value = new Date().toISOString().split("T")[0];
 
-const absentees = {};
 const classesContainer = document.getElementById("classesContainer");
+const absentees = {};
 
-// تحميل الفصول
+// ✅ تحميل الفصول
 loadClasses();
 
 async function loadClasses(){
@@ -197,11 +172,13 @@ async function loadClasses(){
     const sdata = await sres.json();
 
     const list = document.createElement("div");
-    list.innerHTML = "";
 
-    sdata.students.forEach(name=>{
+    sdata.students.forEach(student=>{
       const row = document.createElement("div");
       row.className = "student";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.innerText = student.Name; // ✅ الإصلاح هنا
 
       const btn = document.createElement("button");
       btn.className = "status-btn present";
@@ -212,16 +189,16 @@ async function loadClasses(){
           btn.classList.remove("present");
           btn.classList.add("absent");
           btn.innerText = "غائب";
-          absentees[cls].push(name);
+          absentees[cls].push(student.Name);
         }else{
           btn.classList.remove("absent");
           btn.classList.add("present");
           btn.innerText = "حاضر";
-          absentees[cls] = absentees[cls].filter(n=>n!==name);
+          absentees[cls] = absentees[cls].filter(n => n !== student.Name);
         }
       };
 
-      row.innerHTML = `<span>${name}</span>`;
+      row.appendChild(nameSpan);
       row.appendChild(btn);
       list.appendChild(row);
     });
@@ -252,4 +229,3 @@ async function saveAttendance(){
 
 </body>
 </html>
-``
