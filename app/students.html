@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام الغياب</title>
+<title>تسجيل الغياب</title>
 
 <style>
 body{
@@ -11,212 +11,245 @@ body{
   background:#f4f6f5;
   color:#2c3e50;
 }
+
+/* ===== Header ===== */
 header{
-  background:#1f8f55;
-  color:white;
+  background:#ffffff;
   padding:15px 25px;
-  font-size:20px;
-  font-weight:bold;
+  border-bottom:4px solid #1f8f55;
 }
-.container{padding:25px}
-
-/* ===== بطاقات الفصول ===== */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:20px;
-}
-.card{
-  background:white;
-  border-radius:14px;
-  padding:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,.08);
-  cursor:pointer;
-}
-.card h3{margin:0 0 10px}
-.stats{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-}
-.present{color:#198754}
-.absent{color:#dc3545}
-
-/* ===== صفحة الغياب ===== */
-.hidden{display:none}
-.top-bar{
+.header-inner{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:15px;
+  flex-wrap:wrap;
+  gap:10px;
 }
-.back-btn{
-  background:none;
-  border:none;
+.school{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.school img{height:60px}
+.school-text{
+  line-height:1.4;
+}
+.school-text .ministry,
+.school-text .admin{
   color:#1f8f55;
-  font-size:15px;
-  cursor:pointer;
+  font-size:14px;
 }
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:white;
-  border-radius:12px;
-  overflow:hidden;
+.school-text .name{
+  color:#1f8f55;
+  font-size:18px;
+  font-weight:bold;
 }
-th,td{padding:12px;border-bottom:1px solid #eee}
-.status-btn{
-  padding:6px 16px;
-  border-radius:20px;
+.title{
+  color:#1f8f55;
+  font-weight:bold;
+  font-size:18px;
+}
+
+/* زر التقارير */
+.report-btn{
+  background:#0d6efd;
+  color:white;
   border:none;
+  padding:8px 14px;
+  border-radius:8px;
   cursor:pointer;
+  font-size:14px;
 }
-.present-btn{background:#d4f8e8;color:#0f5132}
-.absent-btn{background:#fde2e2;color:#842029}
+
+/* ===== Layout ===== */
+.container{padding:25px}
+
+/* ===== Controls ===== */
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:20px;
+}
+.toolbar input{
+  padding:6px 10px;
+  font-size:14px;
+}
 .save-btn{
-  margin-top:15px;
-  padding:10px 25px;
   background:#198754;
   color:white;
   border:none;
+  padding:8px 18px;
   border-radius:8px;
   cursor:pointer;
+  font-size:14px;
+}
+
+/* ===== Classes ===== */
+.classes{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:15px;
+}
+.class-card{
+  background:white;
+  border-radius:10px;
+  padding:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.class-card h4{
+  margin:0 0 10px;
+  color:#1f8f55;
+  font-size:16px;
+}
+
+/* ===== Students ===== */
+.student{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid #eee;
+}
+.student:last-child{border:none}
+
+.status-btn{
+  border:none;
+  padding:4px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+.present{background:#d1e7dd;color:#0f5132}
+.absent{background:#f8d7da;color:#842029}
+
+/* ===== Print ===== */
+@media print{
+  .report-btn,.save-btn{display:none}
 }
 </style>
 </head>
 
 <body>
 
-<header>نظام غياب الطلاب</header>
+<header>
+  <div class="header-inner">
+    <div class="school">
+      assets/moe-logo.png
+      <div class="school-text">
+        <div class="ministry">وزارة التعليم</div>
+        <div class="admin">إدارة التعليم بمنطقة الباحة</div>
+        <div class="name">متوسطة العسلة</div>
+      </div>
+    </div>
+
+    <div class="title">تسجيل الغياب</div>
+
+    <!-- ✅ زر الانتقال إلى التقارير -->
+    <button class="report-btn" onclick="location.href='reports.htmliv>
+</header>
 
 <div class="container">
 
-<!-- ===== Dashboard ===== -->
-<div id="dashboard">
-  <h2>الفصول الدراسية</h2>
-  <div class="cards" id="classCards"></div>
-</div>
-
-<!-- ===== Attendance ===== -->
-<div id="attendance" class="hidden">
-  <div class="top-bar">
-    <button class="back-btn" onclick="backToDashboard()">← الرجوع</button>
-    <h2 id="classTitle"></h2>
-    <input type="date" id="attendanceDate">
+  <!-- التاريخ -->
+  <div class="toolbar">
+    <div>
+      📅 التاريخ:
+      <input type="date" id="attendanceDate">
+    </div>
+    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
   </div>
 
-  <table>
-    <thead>
-      <tr><th>#</th><th>اسم الطالب</th><th>الحالة</th></tr>
-    </thead>
-    <tbody id="attendanceTable"></tbody>
-  </table>
-
-  <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
-</div>
+  <!-- الفصول والطلاب -->
+  <div class="classes" id="classesContainer"></div>
 
 </div>
 
 <script>
-const classes=[
- "أول متوسط (أ)","أول متوسط (ب)","أول متوسط (ج)",
- "ثاني متوسط (أ)","ثاني متوسط (ب)",
- "ثالث متوسط (أ)","ثالث متوسط (ب)"
-];
+const dateInput = document.getElementById("attendanceDate");
+const today = new Date().toISOString().split("T")[0];
+dateInput.value = today;
 
-let selectedClass=null;
-const absentees=new Set();
+const absentees = {};
+const classesContainer = document.getElementById("classesContainer");
 
-// تاريخ اليوم
-const today=new Date().toISOString().split("T")[0];
+// تحميل الفصول
+loadClasses();
 
-// ===== تحميل بطاقات الفصول =====
-const cards=document.getElementById("classCards");
-loadDashboard();
+async function loadClasses(){
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
+  const classes = data.classes;
 
-async function loadDashboard(){
-  cards.innerHTML="";
+  classesContainer.innerHTML = "";
+
   for(const cls of classes){
-    const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
-    const data=await res.json();
+    absentees[cls] = [];
 
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`
-      <h3>${cls}</h3>
-      <div class="stats">
-        <span class="present">طلاب: ${data.total}</span>
-        <span class="absent">غائب: ${data.absent}</span>
-      </div>`;
-    div.onclick=()=>openAttendance(cls);
-    cards.appendChild(div);
+    const card = document.createElement("div");
+    card.className = "class-card";
+    card.innerHTML = `<h4>${cls}</h4><div>جاري التحميل...</div>`;
+    classesContainer.appendChild(card);
+
+    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const sdata = await sres.json();
+
+    const list = document.createElement("div");
+    list.innerHTML = "";
+
+    sdata.students.forEach(name=>{
+      const row = document.createElement("div");
+      row.className = "student";
+
+      const btn = document.createElement("button");
+      btn.className = "status-btn present";
+      btn.innerText = "حاضر";
+
+      btn.onclick = () => {
+        if(btn.classList.contains("present")){
+          btn.classList.remove("present");
+          btn.classList.add("absent");
+          btn.innerText = "غائب";
+          absentees[cls].push(name);
+        }else{
+          btn.classList.remove("absent");
+          btn.classList.add("present");
+          btn.innerText = "حاضر";
+          absentees[cls] = absentees[cls].filter(n=>n!==name);
+        }
+      };
+
+      row.innerHTML = `<span>${name}</span>`;
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+
+    card.innerHTML = `<h4>${cls}</h4>`;
+    card.appendChild(list);
   }
-}
-
-// ===== فتح صفحة الغياب =====
-async function openAttendance(cls){
-  selectedClass=cls;
-  absentees.clear();
-
-  document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("attendance").classList.remove("hidden");
-  document.getElementById("classTitle").innerText=cls;
-  document.getElementById("attendanceDate").value=today;
-
-  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data=await res.json();
-
-  const table=document.getElementById("attendanceTable");
-  table.innerHTML="";
-
-  data.students.forEach((s,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${i+1}</td>
-      <td>${s.Name}</td>
-      <td>
-        <button class="status-btn present-btn"
-          onclick="toggle(this,'${s.Name}')">حاضر</button>
-      </td>`;
-    table.appendChild(tr);
-  });
-}
-
-function toggle(btn,name){
-  if(btn.classList.contains("present-btn")){
-    btn.classList.remove("present-btn");
-    btn.classList.add("absent-btn");
-    btn.innerText="غائب";
-    absentees.add(name);
-  }else{
-    btn.classList.remove("absent-btn");
-    btn.classList.add("present-btn");
-    btn.innerText="حاضر";
-    absentees.delete(name);
-  }
-}
-
-function backToDashboard(){
-  document.getElementById("attendance").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  loadDashboard();
 }
 
 async function saveAttendance(){
-  const date=document.getElementById("attendanceDate").value;
-  await fetch("/api/saveAttendance",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json"},
-    body:JSON.stringify({
-      className:selectedClass,
-      date,
-      absentees:Array.from(absentees)
-    })
-  });
-  alert("✅ تم حفظ الغياب");
-  backToDashboard();
+  const date = dateInput.value;
+
+  for(const cls in absentees){
+    await fetch("/api/saveAttendance",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body:JSON.stringify({
+        className:cls,
+        date,
+        absentees:absentees[cls]
+      })
+    });
+  }
+
+  alert("✅ تم حفظ الغياب بنجاح");
 }
 </script>
 
 </body>
 </html>
+``
