@@ -39,24 +39,40 @@ header{
   align-items:center;
   gap:16px;
 }
-.school img{
-  height:64px; /* ✅ تكبير الشعار */
-}
-.school-text{
-  font-size:14px;
-  line-height:1.5;
-}
-.school-text strong{
-  font-size:16px;
-}
-.header-inner button{
+.school img{height:64px}
+.school-text{font-size:14px;line-height:1.5}
+.school-text strong{font-size:16px}
+header button{
   background:var(--green);
   color:white;
   border:none;
   padding:10px 16px;
   border-radius:10px;
-  font-size:14px;
   cursor:pointer;
+}
+
+/* ===== Counter ===== */
+.counter{
+  max-width:900px;
+  margin:12px auto 0;
+  padding:12px 16px;
+  background:#e9f5ef;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+}
+
+/* ===== Alert ===== */
+.alert{
+  max-width:900px;
+  margin:12px auto;
+  padding:12px 16px;
+  background:#d1e7dd;
+  color:#0f5132;
+  border-radius:12px;
+  display:none;
+  font-weight:bold;
 }
 
 /* ===== Container ===== */
@@ -80,20 +96,12 @@ header{
   box-shadow:0 2px 8px rgba(0,0,0,.08);
   border-top:6px solid var(--gray);
 }
-.class-card.ok{ border-top-color:var(--green); }
-.class-card.absent{ border-top-color:var(--red); }
+.class-card.ok{border-top-color:var(--green)}
+.class-card.absent{border-top-color:var(--red)}
 
-.class-card h3{
-  margin:0 0 6px;
-}
-.class-card .count{
-  color:#777;
-  margin-bottom:6px;
-}
-.class-card .status{
-  font-size:14px;
-  margin-bottom:12px;
-}
+.class-card h3{margin:0 0 6px}
+.class-card .count{color:#777;margin-bottom:6px}
+.class-card .status{font-size:14px;margin-bottom:10px}
 .class-card button{
   width:100%;
   background:var(--green);
@@ -107,7 +115,6 @@ header{
 
 /* ===== Attendance ===== */
 .hidden{display:none}
-
 .attendance{
   background:var(--card);
   border-radius:14px;
@@ -133,7 +140,6 @@ header{
 .present{background:#d1e7dd;color:#0f5132}
 .absent{background:#f8d7da;color:#842029}
 
-/* ===== Actions inside class ===== */
 .actions{
   margin-top:20px;
 }
@@ -145,15 +151,8 @@ header{
   border:none;
   cursor:pointer;
 }
-.save-btn{
-  background:var(--green);
-  color:white;
-  margin-bottom:10px;
-}
-.back-btn{
-  background:#6c757d;
-  color:white;
-}
+.save-btn{background:var(--green);color:white;margin-bottom:10px}
+.back-btn{background:#6c757d;color:white}
 </style>
 </head>
 
@@ -162,20 +161,30 @@ header{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png" alt="وزارة التعليم">
+      assets/moe-logo.png
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
-    <!-- ✅ زر واحد فقط -->
-    <button onclick="location.href='"container">
+    <button onclick="location.href='reports.html'eader>
 
-  <!-- ✅ الصفحة الرئيسية: بطاقات الفصول -->
+<!-- ✅ العدّاد -->
+<div class="counter">
+  <div id="counterClasses">الفصول المسجّلة: 0</div>
+  <div id="counterAbsent">إجمالي الغائبين: 0</div>
+</div>
+
+<!-- ✅ التنبيه -->
+<div id="successAlert" class="alert">
+  ✅ تم تسجيل الغياب بنجاح
+</div>
+
+<div class="container">
+
   <div id="classesView" class="classes"></div>
 
-  <!-- ✅ داخل الفصل -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -190,45 +199,51 @@ header{
 
 <script>
 const today = new Date().toISOString().split("T")[0];
-let selectedClass = null;
-let absentees = [];
-const classCards = {};
+let selectedClass=null;
+let absentees=[];
+let totalClasses=0;
+let registeredClasses=0;
+let totalAbsent=0;
+const classCards={};
 
-// تحميل الفصول مع تلوين تلقائي
 loadClasses();
 
 async function loadClasses(){
-  const res = await fetch("/api/getClasses");
-  const data = await res.json();
-  const classes = data.classes;
+  const res=await fetch("/api/getClasses");
+  const data=await res.json();
+  const classes=data.classes;
+  totalClasses=classes.length;
+  registeredClasses=0;
+  totalAbsent=0;
 
-  const container = document.getElementById("classesView");
-  container.innerHTML = "";
+  const container=document.getElementById("classesView");
+  container.innerHTML="";
 
   for(const cls of classes){
-    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-    const sdata = await sres.json();
+    const sres=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const sdata=await sres.json();
 
-    const arep = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
-    const arepData = await arep.json();
-    const absentCount = arepData.absent || 0;
+    const arep=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
+    const arepData=await arep.json();
+    const absentCount=arepData.absent||0;
 
-    const card = document.createElement("div");
-    card.className = "class-card";
-
-    let statusText = "لم يتم تسجيل الغياب";
+    const card=document.createElement("div");
+    card.className="class-card";
+    let statusText="لم يتم تسجيل الغياب";
 
     if(arepData.success){
-      if(absentCount === 0){
+      registeredClasses++;
+      totalAbsent+=absentCount;
+      if(absentCount===0){
         card.classList.add("ok");
-        statusText = "تم تسجيل الغياب – لا يوجد غياب";
+        statusText="تم تسجيل الغياب – لا يوجد غياب";
       }else{
         card.classList.add("absent");
-        statusText = `تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
+        statusText=`تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
       }
     }
 
-    card.innerHTML = `
+    card.innerHTML=`
       <h3>${cls}</h3>
       <div class="count">عدد الطلاب: ${sdata.students.length}</div>
       <div class="status">${statusText}</div>
@@ -236,36 +251,41 @@ async function loadClasses(){
     `;
 
     container.appendChild(card);
-    classCards[cls] = card;
+    classCards[cls]=card;
   }
+
+  updateCounter();
+}
+
+function updateCounter(){
+  document.getElementById("counterClasses").innerText=
+    `الفصول المسجّلة: ${registeredClasses} من ${totalClasses}`;
+  document.getElementById("counterAbsent").innerText=
+    `إجمالي الغائبين: ${totalAbsent}`;
 }
 
 async function openClass(cls){
-  selectedClass = cls;
-  absentees = [];
-
+  selectedClass=cls;
+  absentees=[];
   document.getElementById("classesView").classList.add("hidden");
   document.getElementById("attendanceView").classList.remove("hidden");
-  document.getElementById("classTitle").innerText = cls;
+  document.getElementById("classTitle").innerText=cls;
 
-  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data = await res.json();
-
-  const list = document.getElementById("studentsList");
-  list.innerHTML = "";
+  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data=await res.json();
+  const list=document.getElementById("studentsList");
+  list.innerHTML="";
 
   data.students.forEach(s=>{
-    const row = document.createElement("div");
-    row.className = "student";
+    const row=document.createElement("div");
+    row.className="student";
+    const name=document.createElement("span");
+    name.innerText=s.Name;
+    const btn=document.createElement("button");
+    btn.className="status-btn present";
+    btn.innerText="حاضر";
 
-    const name = document.createElement("span");
-    name.innerText = s.Name;
-
-    const btn = document.createElement("button");
-    btn.className = "status-btn present";
-    btn.innerText = "حاضر";
-
-    btn.onclick = () => {
+    btn.onclick=()=>{
       if(btn.classList.contains("present")){
         btn.classList.replace("present","absent");
         btn.innerText="غائب";
@@ -273,7 +293,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees = absentees.filter(n=>n!==s.Name);
+        absentees=absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -294,6 +314,9 @@ async function saveAttendance(){
     })
   });
 
+  document.getElementById("successAlert").style.display="block";
+  setTimeout(()=>document.getElementById("successAlert").style.display="none",3000);
+
   loadClasses();
   backToClasses();
 }
@@ -306,3 +329,4 @@ function backToClasses(){
 
 </body>
 </html>
+``
