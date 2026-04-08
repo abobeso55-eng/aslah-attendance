@@ -11,8 +11,6 @@ body{
   background:#f4f6f5;
   color:#2c3e50;
 }
-
-/* ===== Header ===== */
 header{
   background:#ffffff;
   padding:15px 25px;
@@ -23,7 +21,6 @@ header{
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
-  gap:10px;
 }
 .school{
   display:flex;
@@ -46,8 +43,6 @@ header{
   font-weight:bold;
   font-size:18px;
 }
-
-/* زر التقارير */
 .report-btn{
   background:#0d6efd;
   color:white;
@@ -57,7 +52,6 @@ header{
   cursor:pointer;
 }
 
-/* ===== Layout ===== */
 .container{padding:25px}
 
 .toolbar{
@@ -66,9 +60,7 @@ header{
   align-items:center;
   margin-bottom:20px;
 }
-.toolbar input{
-  padding:6px 10px;
-}
+.toolbar input{padding:6px 10px}
 .save-btn{
   background:#198754;
   color:white;
@@ -78,7 +70,6 @@ header{
   cursor:pointer;
 }
 
-/* ===== تنبيه ===== */
 .alert{
   display:none;
   background:#d1e7dd;
@@ -89,14 +80,12 @@ header{
   font-weight:bold;
 }
 
-/* ===== Classes ===== */
 .classes{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap:20px;
 }
 
-/* بطاقة الفصل */
 .class-card{
   background:white;
   border-radius:12px;
@@ -107,12 +96,8 @@ header{
 .class-card.absent{
   border-top-color:#dc3545;
 }
-.class-card h4{
-  margin:0 0 10px;
-  font-size:16px;
-}
+.class-card h4{margin:0 0 10px;font-size:16px}
 
-/* الطلاب */
 .student{
   display:flex;
   justify-content:space-between;
@@ -150,15 +135,12 @@ header{
         <div class="name">متوسطة العسلة</div>
       </div>
     </div>
-
     <div class="title">تسجيل الغياب</div>
-
-    <button class="report-btn" onclick="location.href='reports.htmliv>
+    <button class="report-btn" onclick="location.href='reports.html'v>
 </header>
 
 <div class="container">
 
-  <!-- ✅ تنبيه -->
   <div id="attendanceAlert" class="alert">
     ✅ تم تسجيل الغياب اليوم
   </div>
@@ -176,43 +158,33 @@ header{
 </div>
 
 <script>
-const dateInput = document.getElementById("attendanceDate");
 const today = new Date().toISOString().split("T")[0];
-dateInput.value = today;
+document.getElementById("attendanceDate").value = today;
 
 const classesContainer = document.getElementById("classesContainer");
 const absentees = {};
 const alertBox = document.getElementById("attendanceAlert");
 
-// تحميل الفصول + استرجاع غياب اليوم
 loadClasses();
 
 async function loadClasses(){
-  const res = await fetch("/api/getClasses");
-  const data = await res.json();
-  const classes = data.classes;
+  const classRes = await fetch("/api/getClasses");
+  const classData = await classRes.json();
+  const classes = classData.classes;
 
   classesContainer.innerHTML = "";
   let alreadySaved = false;
 
   for(const cls of classes){
-    absentees[cls] = [];
-
-    // جلب غياب اليوم
+    // ✅ جلب الغياب مع حماية
     const arep = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
     const arepData = await arep.json();
-    absentees[cls] = [...arepData.absentees];
+    absentees[cls] = Array.isArray(arepData.absentees) ? [...arepData.absentees] : [];
 
-    if(arepData.absentees.length > 0){
-      alreadySaved = true;
-    }
+    if(absentees[cls].length > 0) alreadySaved = true;
 
     const card = document.createElement("div");
-    card.className = "class-card";
-    if(absentees[cls].length > 0){
-      card.classList.add("absent");
-    }
-
+    card.className = "class-card" + (absentees[cls].length ? " absent" : "");
     card.innerHTML = `<h4>${cls}</h4>`;
     classesContainer.appendChild(card);
 
@@ -234,19 +206,15 @@ async function loadClasses(){
 
       btn.onclick = () => {
         if(btn.classList.contains("present")){
-          btn.classList.remove("present");
-          btn.classList.add("absent");
+          btn.classList.replace("present","absent");
           btn.innerText="غائب";
           absentees[cls].push(student.Name);
           card.classList.add("absent");
         }else{
-          btn.classList.remove("absent");
-          btn.classList.add("present");
+          btn.classList.replace("absent","present");
           btn.innerText="حاضر";
           absentees[cls] = absentees[cls].filter(n=>n!==student.Name);
-          if(absentees[cls].length === 0){
-            card.classList.remove("absent");
-          }
+          if(absentees[cls].length===0) card.classList.remove("absent");
         }
       };
 
@@ -256,37 +224,29 @@ async function loadClasses(){
     });
   }
 
-  // ✅ إظهار التنبيه إذا الغياب مسجل مسبقًا
   if(alreadySaved){
-    showAlert();
+    alertBox.style.display="block";
+    setTimeout(()=>alertBox.style.display="none",4000);
   }
 }
 
-function showAlert(){
-  alertBox.style.display = "block";
-  setTimeout(() => {
-    alertBox.style.display = "none";
-  }, 4000);
-}
-
 async function saveAttendance(){
-  const date = dateInput.value;
-
   for(const cls in absentees){
     await fetch("/api/saveAttendance",{
       method:"POST",
       headers:{ "Content-Type":"application/json"},
       body:JSON.stringify({
         className:cls,
-        date,
+        date:today,
         absentees:absentees[cls]
       })
     });
   }
-
-  showAlert();
+  alertBox.style.display="block";
+  setTimeout(()=>alertBox.style.display="none",4000);
 }
 </script>
 
 </body>
 </html>
+``
