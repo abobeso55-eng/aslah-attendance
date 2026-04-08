@@ -78,6 +78,17 @@ header{
   cursor:pointer;
 }
 
+/* ===== تنبيه ===== */
+.alert{
+  display:none;
+  background:#d1e7dd;
+  color:#0f5132;
+  padding:12px 16px;
+  border-radius:8px;
+  margin-bottom:20px;
+  font-weight:bold;
+}
+
 /* ===== Classes ===== */
 .classes{
   display:grid;
@@ -91,10 +102,10 @@ header{
   border-radius:12px;
   padding:15px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  border-top:6px solid #198754; /* افتراضي أخضر */
+  border-top:6px solid #198754;
 }
 .class-card.absent{
-  border-top-color:#dc3545; /* أحمر عند وجود غياب */
+  border-top-color:#dc3545;
 }
 .class-card h4{
   margin:0 0 10px;
@@ -113,3 +124,169 @@ header{
 
 .status-btn{
   border:none;
+  padding:4px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+.present{background:#d1e7dd;color:#0f5132}
+.absent{background:#f8d7da;color:#842029}
+
+@media print{
+  .report-btn,.save-btn,.alert{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="school">
+      assets/moe-logo.png
+      <div class="school-text">
+        <div class="ministry">وزارة التعليم</div>
+        <div class="admin">إدارة التعليم بمنطقة الباحة</div>
+        <div class="name">متوسطة العسلة</div>
+      </div>
+    </div>
+
+    <div class="title">تسجيل الغياب</div>
+
+    <button class="report-btn" onclick="location.href='reports.htmliv>
+</header>
+
+<div class="container">
+
+  <!-- ✅ تنبيه -->
+  <div id="attendanceAlert" class="alert">
+    ✅ تم تسجيل الغياب اليوم
+  </div>
+
+  <div class="toolbar">
+    <div>
+      📅 التاريخ:
+      <input type="date" id="attendanceDate">
+    </div>
+    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+  </div>
+
+  <div class="classes" id="classesContainer"></div>
+
+</div>
+
+<script>
+const dateInput = document.getElementById("attendanceDate");
+const today = new Date().toISOString().split("T")[0];
+dateInput.value = today;
+
+const classesContainer = document.getElementById("classesContainer");
+const absentees = {};
+const alertBox = document.getElementById("attendanceAlert");
+
+// تحميل الفصول + استرجاع غياب اليوم
+loadClasses();
+
+async function loadClasses(){
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
+  const classes = data.classes;
+
+  classesContainer.innerHTML = "";
+  let alreadySaved = false;
+
+  for(const cls of classes){
+    absentees[cls] = [];
+
+    // جلب غياب اليوم
+    const arep = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
+    const arepData = await arep.json();
+    absentees[cls] = [...arepData.absentees];
+
+    if(arepData.absentees.length > 0){
+      alreadySaved = true;
+    }
+
+    const card = document.createElement("div");
+    card.className = "class-card";
+    if(absentees[cls].length > 0){
+      card.classList.add("absent");
+    }
+
+    card.innerHTML = `<h4>${cls}</h4>`;
+    classesContainer.appendChild(card);
+
+    const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const sdata = await sres.json();
+
+    sdata.students.forEach(student=>{
+      const row = document.createElement("div");
+      row.className = "student";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.innerText = student.Name;
+
+      const btn = document.createElement("button");
+      const isAbsent = absentees[cls].includes(student.Name);
+
+      btn.className = "status-btn " + (isAbsent ? "absent" : "present");
+      btn.innerText = isAbsent ? "غائب" : "حاضر";
+
+      btn.onclick = () => {
+        if(btn.classList.contains("present")){
+          btn.classList.remove("present");
+          btn.classList.add("absent");
+          btn.innerText="غائب";
+          absentees[cls].push(student.Name);
+          card.classList.add("absent");
+        }else{
+          btn.classList.remove("absent");
+          btn.classList.add("present");
+          btn.innerText="حاضر";
+          absentees[cls] = absentees[cls].filter(n=>n!==student.Name);
+          if(absentees[cls].length === 0){
+            card.classList.remove("absent");
+          }
+        }
+      };
+
+      row.appendChild(nameSpan);
+      row.appendChild(btn);
+      card.appendChild(row);
+    });
+  }
+
+  // ✅ إظهار التنبيه إذا الغياب مسجل مسبقًا
+  if(alreadySaved){
+    showAlert();
+  }
+}
+
+function showAlert(){
+  alertBox.style.display = "block";
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, 4000);
+}
+
+async function saveAttendance(){
+  const date = dateInput.value;
+
+  for(const cls in absentees){
+    await fetch("/api/saveAttendance",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body:JSON.stringify({
+        className:cls,
+        date,
+        absentees:absentees[cls]
+      })
+    });
+  }
+
+  showAlert();
+}
+</script>
+
+</body>
+</html>
