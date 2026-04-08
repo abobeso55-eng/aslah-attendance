@@ -11,48 +11,65 @@ body{
   background:#f4f6f5;
   color:#2c3e50;
 }
+
+/* ===== Header ===== */
 header{
-  background:#ffffff;
+  background:#1f8f55;
+  color:white;
   padding:15px 25px;
-  border-bottom:4px solid #1f8f55;
 }
 .header-inner{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
-}
-.school{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-.school img{height:60px}
-.school-text .ministry,
-.school-text .admin{
-  color:#1f8f55;
-  font-size:14px;
-}
-.school-text .name{
-  color:#1f8f55;
-  font-size:18px;
-  font-weight:bold;
 }
 .title{
-  color:#1f8f55;
+  font-size:20px;
   font-weight:bold;
-  font-size:18px;
 }
 .report-btn{
-  background:#0d6efd;
-  color:white;
+  background:white;
+  color:#1f8f55;
   border:none;
   padding:8px 14px;
   border-radius:8px;
   cursor:pointer;
 }
 
+/* ===== Layout ===== */
 .container{padding:25px}
+
+/* ===== Cards ===== */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;
+}
+.card{
+  background:white;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  text-align:center;
+}
+.card h3{
+  margin:0 0 10px;
+}
+.card .count{
+  color:#777;
+  margin-bottom:15px;
+}
+.card button{
+  background:#1f8f55;
+  color:white;
+  border:none;
+  padding:8px 16px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* ===== Attendance ===== */
+.hidden{display:none}
 
 .toolbar{
   display:flex;
@@ -60,7 +77,14 @@ header{
   align-items:center;
   margin-bottom:20px;
 }
-.toolbar input{padding:6px 10px}
+.back-btn{
+  background:#6c757d;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
 .save-btn{
   background:#198754;
   color:white;
@@ -70,56 +94,23 @@ header{
   cursor:pointer;
 }
 
-.alert{
-  display:none;
-  background:#d1e7dd;
-  color:#0f5132;
-  padding:12px 16px;
-  border-radius:8px;
-  margin-bottom:20px;
-  font-weight:bold;
-}
-
-.classes{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:20px;
-}
-
-.class-card{
-  background:white;
-  border-radius:12px;
-  padding:15px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-  border-top:6px solid #198754;
-}
-.class-card.absent{
-  border-top-color:#dc3545;
-}
-.class-card h4{margin:0 0 10px;font-size:16px}
-
 .student{
+  background:white;
+  border-radius:8px;
+  padding:10px 15px;
+  margin-bottom:10px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:6px 0;
-  border-bottom:1px solid #eee;
 }
-.student:last-child{border:none}
-
 .status-btn{
   border:none;
   padding:4px 12px;
   border-radius:6px;
   cursor:pointer;
-  font-size:13px;
 }
 .present{background:#d1e7dd;color:#0f5132}
 .absent{background:#f8d7da;color:#842029}
-
-@media print{
-  .report-btn,.save-btn,.alert{display:none}
-}
 </style>
 </head>
 
@@ -127,126 +118,123 @@ header{
 
 <header>
   <div class="header-inner">
-    <div class="school">
-      assets/moe-logo.png
-      <div class="school-text">
-        <div class="ministry">وزارة التعليم</div>
-        <div class="admin">إدارة التعليم بمنطقة الباحة</div>
-        <div class="name">متوسطة العسلة</div>
-      </div>
-    </div>
-    <div class="title">تسجيل الغياب</div>
-    <button class="report-btn" onclick="location.href='reports.html'v>
-</header>
+    <div class="title">تسجيل الغياب اليومي</div>
+    <button class="report-btn" onclick="location.href='reports.html
 
 <div class="container">
 
-  <div id="attendanceAlert" class="alert">
-    ✅ تم تسجيل الغياب اليوم
-  </div>
+  <!-- ===== الفصول ===== -->
+  <div id="classesView" class="cards"></div>
 
-  <div class="toolbar">
-    <div>
-      📅 التاريخ:
-      <input type="date" id="attendanceDate">
+  <!-- ===== الغياب ===== -->
+  <div id="attendanceView" class="hidden">
+    <div class="toolbar">
+      <button class="back-btn" onclick="backToClasses()">⬅️ الرجوع للفصول</button>
+      <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
     </div>
-    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+    <h3 id="classTitle"></h3>
+    <div id="studentsList"></div>
   </div>
-
-  <div class="classes" id="classesContainer"></div>
 
 </div>
 
 <script>
 const today = new Date().toISOString().split("T")[0];
-document.getElementById("attendanceDate").value = today;
+let selectedClass = null;
+let absentees = [];
 
-const classesContainer = document.getElementById("classesContainer");
-const absentees = {};
-const alertBox = document.getElementById("attendanceAlert");
-
+// ===== تحميل الفصول =====
 loadClasses();
 
 async function loadClasses(){
-  const classRes = await fetch("/api/getClasses");
-  const classData = await classRes.json();
-  const classes = classData.classes;
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
+  const classes = data.classes;
 
-  classesContainer.innerHTML = "";
-  let alreadySaved = false;
+  const container = document.getElementById("classesView");
+  container.innerHTML = "";
 
   for(const cls of classes){
-    // ✅ جلب الغياب مع حماية
-    const arep = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
-    const arepData = await arep.json();
-    absentees[cls] = Array.isArray(arepData.absentees) ? [...arepData.absentees] : [];
-
-    if(absentees[cls].length > 0) alreadySaved = true;
-
-    const card = document.createElement("div");
-    card.className = "class-card" + (absentees[cls].length ? " absent" : "");
-    card.innerHTML = `<h4>${cls}</h4>`;
-    classesContainer.appendChild(card);
-
     const sres = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
     const sdata = await sres.json();
 
-    sdata.students.forEach(student=>{
-      const row = document.createElement("div");
-      row.className = "student";
-
-      const nameSpan = document.createElement("span");
-      nameSpan.innerText = student.Name;
-
-      const btn = document.createElement("button");
-      const isAbsent = absentees[cls].includes(student.Name);
-
-      btn.className = "status-btn " + (isAbsent ? "absent" : "present");
-      btn.innerText = isAbsent ? "غائب" : "حاضر";
-
-      btn.onclick = () => {
-        if(btn.classList.contains("present")){
-          btn.classList.replace("present","absent");
-          btn.innerText="غائب";
-          absentees[cls].push(student.Name);
-          card.classList.add("absent");
-        }else{
-          btn.classList.replace("absent","present");
-          btn.innerText="حاضر";
-          absentees[cls] = absentees[cls].filter(n=>n!==student.Name);
-          if(absentees[cls].length===0) card.classList.remove("absent");
-        }
-      };
-
-      row.appendChild(nameSpan);
-      row.appendChild(btn);
-      card.appendChild(row);
-    });
-  }
-
-  if(alreadySaved){
-    alertBox.style.display="block";
-    setTimeout(()=>alertBox.style.display="none",4000);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${cls}</h3>
+      <div class="count">عدد الطلاب: ${sdata.students.length}</div>
+      <button onclick="openClass('${cls}')">تسجيل الغياب</button>
+    `;
+    container.appendChild(card);
   }
 }
 
+// ===== فتح فصل =====
+async function openClass(cls){
+  selectedClass = cls;
+  absentees = [];
+
+  document.getElementById("classesView").classList.add("hidden");
+  document.getElementById("attendanceView").classList.remove("hidden");
+  document.getElementById("classTitle").innerText = cls;
+
+  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data = await res.json();
+
+  const list = document.getElementById("studentsList");
+  list.innerHTML = "";
+
+  data.students.forEach(s=>{
+    const row = document.createElement("div");
+    row.className = "student";
+
+    const name = document.createElement("span");
+    name.innerText = s.Name;
+
+    const btn = document.createElement("button");
+    btn.className = "status-btn present";
+    btn.innerText = "حاضر";
+
+    btn.onclick = () => {
+      if(btn.classList.contains("present")){
+        btn.classList.replace("present","absent");
+        btn.innerText="غائب";
+        absentees.push(s.Name);
+      }else{
+        btn.classList.replace("absent","present");
+        btn.innerText="حاضر";
+        absentees = absentees.filter(n=>n!==s.Name);
+      }
+    };
+
+    row.appendChild(name);
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+}
+
+// ===== حفظ =====
 async function saveAttendance(){
-  for(const cls in absentees){
-    await fetch("/api/saveAttendance",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body:JSON.stringify({
-        className:cls,
-        date:today,
-        absentees:absentees[cls]
-      })
-    });
-  }
-  alertBox.style.display="block";
-  setTimeout(()=>alertBox.style.display="none",4000);
+  await fetch("/api/saveAttendance",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify({
+      className:selectedClass,
+      date:today,
+      absentees
+    })
+  });
+
+  alert("✅ تم حفظ الغياب");
+  backToClasses();
+}
+
+// ===== رجوع =====
+function backToClasses(){
+  document.getElementById("attendanceView").classList.add("hidden");
+  document.getElementById("classesView").classList.remove("hidden");
 }
 </script>
 
 </body>
 </html>
-``
