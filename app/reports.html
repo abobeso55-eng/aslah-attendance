@@ -172,7 +172,7 @@ header{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png" alt="وزارة التعليم">
+      assets/moe-logo.png
       <div class="school-text">
         <div class="ministry">وزارة التعليم</div>
         <div class="admin">إدارة التعليم بمنطقة الباحة</div>
@@ -185,7 +185,12 @@ header{
       <span id="reportDateText"></span>
     </div>
 
-    <button class="back-btn" onclick="location.href='v class="container">
+    <!-- ✅ زر الرجوع -->
+    <button class="back-btn" onclick="location.href='/button>
+  </div>
+</header>
+
+<div class="container">
 
   <!-- التاريخ + الطباعة -->
   <div class="toolbar">
@@ -229,16 +234,14 @@ header{
 const dateInput = document.getElementById("reportDate");
 const reportDateText = document.getElementById("reportDateText");
 
-// تاريخ اليوم افتراضيًا
+// اليوم افتراضيًا
 const today = new Date();
 const todayISO = today.toISOString().split("T")[0];
 dateInput.value = todayISO;
 updateDateText(today);
-
-// تحميل تقرير اليوم
 loadReport(todayISO);
 
-// عند تغيير التاريخ
+// تغيير التاريخ
 dateInput.onchange = () => {
   const d = new Date(dateInput.value);
   updateDateText(d);
