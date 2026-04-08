@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>تقرير الغياب</title>
+<title>تقرير الغياب اليومي</title>
 
 <style>
 body{
@@ -22,21 +22,24 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  flex-wrap:wrap;
 }
 .school{
   display:flex;
   align-items:center;
   gap:15px;
 }
-.school img{
-  height:60px;
+.school img{height:60px}
+.school-text .ministry,
+.school-text .admin{
+  color:#1f8f55;
+  font-size:14px;
 }
-.school-text{
-  line-height:1.4;
+.school-text .name{
+  color:#1f8f55;
+  font-size:18px;
+  font-weight:bold;
 }
-.school-text .ministry{color:#1f8f55;font-size:14px}
-.school-text .admin{color:#1f8f55;font-weight:bold;font-size:14px}
-.school-text .name{color:#1f8f55;font-size:18px;font-weight:bold}
 .title{
   color:#1f8f55;
   font-weight:bold;
@@ -45,6 +48,18 @@ header{
 
 /* ===== Layout ===== */
 .container{padding:25px}
+
+/* ===== Date ===== */
+.date-box{
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.date-box input{
+  padding:6px 10px;
+  font-size:14px;
+}
 
 /* ===== Stats ===== */
 .stats{
@@ -66,7 +81,7 @@ header{
 .red{color:#dc3545}
 .blue{color:#0d6efd}
 
-/* ===== Class Cards ===== */
+/* ===== Classes ===== */
 .classes{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
@@ -117,11 +132,6 @@ header{
   font-size:14px;
 }
 .absent-card li:last-child{border:none}
-
-/* ===== Print ===== */
-@media print{
-  body{background:white}
-}
 </style>
 </head>
 
@@ -137,13 +147,19 @@ header{
         <div class="name">متوسطة العسلة</div>
       </div>
     </div>
-    <div class="title">تقرير الغياب اليومي</div>
+    <div class="title">تقرير الغياب</div>
   </div>
 </header>
 
 <div class="container">
 
-  <!-- ===== Stats ===== -->
+  <!-- ✅ اختيار التاريخ -->
+  <div class="date-box">
+    📅 التاريخ:
+    <input type="date" id="reportDate">
+  </div>
+
+  <!-- ✅ الإحصائيات -->
   <div class="stats">
     <div class="stat">
       <h4>إجمالي الطلاب</h4>
@@ -163,71 +179,91 @@ header{
     </div>
   </div>
 
-  <!-- ===== Classes ===== -->
+  <!-- ✅ بطاقات الفصول -->
   <div class="classes" id="classCards"></div>
 
-  <!-- ===== Absentees ===== -->
+  <!-- ✅ أسماء الغائبين -->
   <div class="section-title">أسماء الطلاب الغائبين</div>
   <div class="absent-groups" id="absentGroups"></div>
 
 </div>
 
 <script>
-const classes=[
- "أول متوسط (أ)","أول متوسط (ب)","أول متوسط (ج)",
- "ثاني متوسط (أ)","ثاني متوسط (ب)",
- "ثالث متوسط (أ)","ثالث متوسط (ب)"
-];
+const dateInput = document.getElementById("reportDate");
 
-const today=new Date().toISOString().split("T")[0];
-let totalStudents=0;
-let totalAbsent=0;
+// ✅ اليوم افتراضيًا
+const today = new Date().toISOString().split("T")[0];
+dateInput.value = today;
 
-const classCards=document.getElementById("classCards");
-const absentGroups=document.getElementById("absentGroups");
+// ✅ تحميل التقرير تلقائيًا
+loadReport(today);
 
-(async ()=>{
+// ✅ عند تغيير التاريخ
+dateInput.onchange = () => {
+  loadReport(dateInput.value);
+};
+
+async function loadReport(date){
+  // جلب الفصول
+  const classRes = await fetch("/api/getClasses");
+  const classData = await classRes.json();
+  const classes = classData.classes;
+
+  let totalStudents = 0;
+  let totalAbsent = 0;
+
+  const classCards = document.getElementById("classCards");
+  const absentGroups = document.getElementById("absentGroups");
+
+  classCards.innerHTML = "";
+  absentGroups.innerHTML = "";
+
   for(const cls of classes){
-    const res=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
-    const data=await res.json();
+    const res = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${date}`);
+    const data = await res.json();
 
-    totalStudents+=data.total;
-    totalAbsent+=data.absent;
+    totalStudents += data.total;
+    totalAbsent += data.absent;
 
     // بطاقة الفصل
-    const c=document.createElement("div");
-    c.className="class-card";
-    c.innerHTML=`
+    const c = document.createElement("div");
+    c.className = "class-card";
+    c.innerHTML = `
       <h4>${cls}</h4>
-      ${data.absent===0
-        ? `<div class="ok">✅ لا يوجد غياب</div>`
-        : `<div class="bad">❌ غياب: ${data.absent}</div>`}
+      ${
+        data.absent === 0
+          ? `<div class="ok">✅ لا يوجد غياب</div>`
+          : `<div class="bad">❌ غياب: ${data.absent}</div>`
+      }
     `;
     classCards.appendChild(c);
 
-    // الغائبين
-    if(data.absentees.length>0){
-      const box=document.createElement("div");
-      box.className="absent-card";
-      box.innerHTML=`<header>${cls}</header><ul></ul>`;
-      const ul=box.querySelector("ul");
-      data.absentees.forEach(n=>{
-        const li=document.createElement("li");
-        li.innerText=n;
+    // أسماء الغائبين
+    if(data.absentees.length > 0){
+      const box = document.createElement("div");
+      box.className = "absent-card";
+      box.innerHTML = `<header>${cls}</header><ul></ul>`;
+      const ul = box.querySelector("ul");
+
+      data.absentees.forEach(name=>{
+        const li = document.createElement("li");
+        li.innerText = name;
         ul.appendChild(li);
       });
+
       absentGroups.appendChild(box);
     }
   }
 
-  const present=totalStudents-totalAbsent;
-  document.getElementById("totalStudents").innerText=totalStudents;
-  document.getElementById("absentCount").innerText=totalAbsent;
-  document.getElementById("absentPercent").innerText=((totalAbsent/totalStudents)*100).toFixed(1)+"%";
-  document.getElementById("presentPercent").innerText=((present/totalStudents)*100).toFixed(1)+"%";
-})();
+  const present = totalStudents - totalAbsent;
+  document.getElementById("totalStudents").innerText = totalStudents;
+  document.getElementById("absentCount").innerText = totalAbsent;
+  document.getElementById("absentPercent").innerText =
+    totalStudents > 0 ? ((totalAbsent / totalStudents) * 100).toFixed(1) + "%" : "0%";
+  document.getElementById("presentPercent").innerText =
+    totalStudents > 0 ? ((present / totalStudents) * 100).toFixed(1) + "%" : "0%";
+}
 </script>
 
 </body>
 </html>
-``
