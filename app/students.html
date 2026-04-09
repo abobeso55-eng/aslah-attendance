@@ -39,9 +39,16 @@ header{
   align-items:center;
   gap:16px;
 }
-.school img{height:64px}
-.school-text{font-size:14px;line-height:1.5}
-.school-text strong{font-size:16px}
+.school img{
+  height:64px;
+}
+.school-text{
+  font-size:14px;
+  line-height:1.5;
+}
+.school-text strong{
+  font-size:16px;
+}
 header button{
   background:var(--green);
   color:white;
@@ -161,19 +168,15 @@ header button{
 <header>
   <div class="header-inner">
     <div class="school">
-      assets/moe-logo.png
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
-    <button onclick="location.href='reportsv>
-</header>
-
-<div class="counter">
-  <div id="counterClasses">الفصول المسجّلة: ...</div>
-  <div id="counterAbsent">إجمالي الغائبين: ...</div>
+    <button onclick="location.href='reports.html'id="counterClasses">الفصول المسجّلة: 0</div>
+  <div id="counterAbsent">إجمالي الغائبين: 0</div>
 </div>
 
 <div id="successAlert" class="alert">
@@ -182,8 +185,10 @@ header button{
 
 <div class="container">
 
+  <!-- بطاقات الفصول -->
   <div id="classesView" class="classes"></div>
 
+  <!-- داخل الفصل -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -198,19 +203,32 @@ header button{
 
 <script>
 const today = new Date().toISOString().split("T")[0];
-let selectedClass=null;
-let absentees=[];
-let totalClasses=0;
-let registeredClasses=0;
-let totalAbsent=0;
+let selectedClass = null;
+let absentees = [];
+let totalClasses = 0;
+let registeredClasses = 0;
+let totalAbsent = 0;
 
-// ===== تحميل سريع ومتوازي =====
+// ترتيب الفصول
+function classOrder(name){
+  if(name.includes("أول")) return 1;
+  if(name.includes("ثاني")) return 2;
+  if(name.includes("ثالث")) return 3;
+  return 99;
+}
+
 loadClasses();
 
 async function loadClasses(){
   const res = await fetch("/api/getClasses");
   const data = await res.json();
-  const classes = data.classes;
+
+  const classes = data.classes.sort((a,b)=>{
+    const o1 = classOrder(a);
+    const o2 = classOrder(b);
+    if(o1 !== o2) return o1 - o2;
+    return a.localeCompare(b,"ar");
+  });
 
   totalClasses = classes.length;
   registeredClasses = 0;
@@ -219,7 +237,6 @@ async function loadClasses(){
   const container = document.getElementById("classesView");
   container.innerHTML = "";
 
-  // ✅ طلبات متوازية
   const reports = await Promise.all(
     classes.map(c =>
       fetch(`/api/getAttendanceReport?class=${encodeURIComponent(c)}&date=${today}`)
@@ -227,18 +244,19 @@ async function loadClasses(){
     )
   );
 
-  classes.forEach((cls, i) => {
+  classes.forEach((cls,i)=>{
     const rep = reports[i];
-    const absentCount = rep.absent || 0;
+    const absentCount = rep.absent ?? null;
 
     const card = document.createElement("div");
     card.className = "class-card";
 
     let statusText = "لم يتم تسجيل الغياب";
 
-    if(rep.success){
+    if(absentCount !== null){
       registeredClasses++;
       totalAbsent += absentCount;
+
       if(absentCount === 0){
         card.classList.add("ok");
         statusText = "تم تسجيل الغياب – لا يوجد غياب";
@@ -253,7 +271,6 @@ async function loadClasses(){
       <div class="status">${statusText}</div>
       <button onclick="openClass('${cls}')">تسجيل الغياب</button>
     `;
-
     container.appendChild(card);
   });
 
@@ -267,7 +284,6 @@ function updateCounter(){
     `إجمالي الغائبين: ${totalAbsent}`;
 }
 
-// ===== تحميل الطلاب عند الحاجة فقط =====
 async function openClass(cls){
   selectedClass = cls;
   absentees = [];
