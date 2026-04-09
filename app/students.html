@@ -161,31 +161,29 @@ header button{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
+      assets/moe-logo.png
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
-    <!-- ✅ زر التقارير (محفوظ) -->
-    <button onclick="location.href='لعام -->
+    <button onclick="location.href='reportsv>
+</header>
+
 <div class="counter">
-  <div id="counterClasses">الفصول المسجّلة: 0</div>
-  <div id="counterAbsent">إجمالي الغائبين: 0</div>
+  <div id="counterClasses">الفصول المسجّلة: ...</div>
+  <div id="counterAbsent">إجمالي الغائبين: ...</div>
 </div>
 
-<!-- ✅ تنبيه -->
 <div id="successAlert" class="alert">
   ✅ تم تسجيل الغياب بنجاح
 </div>
 
 <div class="container">
 
-  <!-- بطاقات الفصول -->
   <div id="classesView" class="classes"></div>
 
-  <!-- داخل الفصل -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -205,105 +203,97 @@ let absentees=[];
 let totalClasses=0;
 let registeredClasses=0;
 let totalAbsent=0;
-const classCards={};
 
-/* 🔢 ترتيب الفصول */
-function classOrder(name){
-  if(name.includes("أول")) return 1;
-  if(name.includes("ثاني")) return 2;
-  if(name.includes("ثالث")) return 3;
-  return 99;
-}
-
+// ===== تحميل سريع ومتوازي =====
 loadClasses();
 
 async function loadClasses(){
-  const res=await fetch("/api/getClasses");
-  const data=await res.json();
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
+  const classes = data.classes;
 
-  // ✅ ترتيب الفصول
-  const classes=data.classes.sort((a,b)=>{
-    const o1=classOrder(a);
-    const o2=classOrder(b);
-    if(o1!==o2) return o1-o2;
-    return a.localeCompare(b,"ar");
-  });
+  totalClasses = classes.length;
+  registeredClasses = 0;
+  totalAbsent = 0;
 
-  totalClasses=classes.length;
-  registeredClasses=0;
-  totalAbsent=0;
+  const container = document.getElementById("classesView");
+  container.innerHTML = "";
 
-  const container=document.getElementById("classesView");
-  container.innerHTML="";
+  // ✅ طلبات متوازية
+  const reports = await Promise.all(
+    classes.map(c =>
+      fetch(`/api/getAttendanceReport?class=${encodeURIComponent(c)}&date=${today}`)
+        .then(r => r.json())
+    )
+  );
 
-  for(const cls of classes){
-    const sres=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-    const sdata=await sres.json();
+  classes.forEach((cls, i) => {
+    const rep = reports[i];
+    const absentCount = rep.absent || 0;
 
-    const arep=await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`);
-    const arepData=await arep.json();
-    const absentCount=arepData.absent||0;
+    const card = document.createElement("div");
+    card.className = "class-card";
 
-    const card=document.createElement("div");
-    card.className="class-card";
+    let statusText = "لم يتم تسجيل الغياب";
 
-    let statusText="لم يتم تسجيل الغياب";
-
-    if(arepData.success){
+    if(rep.success){
       registeredClasses++;
-      totalAbsent+=absentCount;
-      if(absentCount===0){
+      totalAbsent += absentCount;
+      if(absentCount === 0){
         card.classList.add("ok");
-        statusText="تم تسجيل الغياب – لا يوجد غياب";
+        statusText = "تم تسجيل الغياب – لا يوجد غياب";
       }else{
         card.classList.add("absent");
-        statusText=`تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
+        statusText = `تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
       }
     }
 
-    card.innerHTML=`
+    card.innerHTML = `
       <h3>${cls}</h3>
-      <div class="count">عدد الطلاب: ${sdata.students.length}</div>
       <div class="status">${statusText}</div>
       <button onclick="openClass('${cls}')">تسجيل الغياب</button>
     `;
 
     container.appendChild(card);
-    classCards[cls]=card;
-  }
+  });
 
   updateCounter();
 }
 
 function updateCounter(){
-  document.getElementById("counterClasses").innerText=
+  document.getElementById("counterClasses").innerText =
     `الفصول المسجّلة: ${registeredClasses} من ${totalClasses}`;
-  document.getElementById("counterAbsent").innerText=
+  document.getElementById("counterAbsent").innerText =
     `إجمالي الغائبين: ${totalAbsent}`;
 }
 
+// ===== تحميل الطلاب عند الحاجة فقط =====
 async function openClass(cls){
-  selectedClass=cls;
-  absentees=[];
+  selectedClass = cls;
+  absentees = [];
+
   document.getElementById("classesView").classList.add("hidden");
   document.getElementById("attendanceView").classList.remove("hidden");
-  document.getElementById("classTitle").innerText=cls;
+  document.getElementById("classTitle").innerText = cls;
 
-  const res=await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data=await res.json();
-  const list=document.getElementById("studentsList");
-  list.innerHTML="";
+  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data = await res.json();
+
+  const list = document.getElementById("studentsList");
+  list.innerHTML = "";
 
   data.students.forEach(s=>{
-    const row=document.createElement("div");
-    row.className="student";
-    const name=document.createElement("span");
-    name.innerText=s.Name;
-    const btn=document.createElement("button");
-    btn.className="status-btn present";
-    btn.innerText="حاضر";
+    const row = document.createElement("div");
+    row.className = "student";
 
-    btn.onclick=()=>{
+    const name = document.createElement("span");
+    name.innerText = s.Name;
+
+    const btn = document.createElement("button");
+    btn.className = "status-btn present";
+    btn.innerText = "حاضر";
+
+    btn.onclick = () => {
       if(btn.classList.contains("present")){
         btn.classList.replace("present","absent");
         btn.innerText="غائب";
@@ -311,7 +301,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees=absentees.filter(n=>n!==s.Name);
+        absentees = absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -347,4 +337,3 @@ function backToClasses(){
 
 </body>
 </html>
-``
