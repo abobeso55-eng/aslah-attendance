@@ -8,8 +8,6 @@
 <style>
 :root{
   --green:#1f8f55;
-  --red:#dc3545;
-  --gray:#adb5bd;
   --bg:#f4f6f5;
   --card:#ffffff;
 }
@@ -55,7 +53,7 @@ header{
 /* Reports button */
 .reports-btn{
   background:var(--green);
-  color:#fff;
+  color:white;
   border:none;
   padding:10px 16px;
   border-radius:10px;
@@ -120,11 +118,10 @@ header{
       </div>
     </div>
 
-    <button class="reports-btn" onclick="location.href='reports.html'lassesView" class="classes"></div>
+    <button class="reports-btn" onclick="location.href='reports id="classesView" class="classes"></div>
 </div>
 
 <script>
-/* تحميل أسماء الفصول فقط (اختبار أساسي) */
 async function loadClasses(){
   try{
     const res = await fetch("/api/getClasses");
