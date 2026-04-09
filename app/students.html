@@ -16,7 +16,7 @@
 
 body{
   margin:0;
-  font-family:'Cairo',Arial,sans-serif;
+  font-family:'Cairo', Arial, sans-serif;
   background:var(--bg);
   color:#2c3e50;
 }
@@ -35,7 +35,7 @@ header{
   align-items:center;
 }
 
-/* معلومات المدرسة */
+/* School info */
 .school{
   display:flex;
   align-items:center;
@@ -52,28 +52,16 @@ header{
   font-size:16px;
 }
 
-/* زر التقارير */
+/* Reports button */
 .reports-btn{
   background:var(--green);
-  color:white;
+  color:#fff;
   border:none;
   padding:10px 16px;
   border-radius:10px;
   font-size:14px;
   cursor:pointer;
   white-space:nowrap;
-}
-
-/* ===== Counter ===== */
-.counter{
-  max-width:900px;
-  margin:10px auto 0;
-  padding:12px 16px;
-  background:#e9f5ef;
-  border-radius:12px;
-  display:flex;
-  justify-content:space-between;
-  font-weight:bold;
 }
 
 /* ===== Container ===== */
@@ -101,14 +89,10 @@ header{
   border-radius:14px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  border-top:6px solid var(--gray);
 }
-.class-card.ok{border-top-color:var(--green)}
-.class-card.absent{border-top-color:var(--red)}
-
-.class-card h3{margin:0 0 6px}
-.class-card .count{color:#777;margin-bottom:6px}
-.class-card .status{font-size:14px;margin-bottom:10px}
+.class-card h3{
+  margin:0 0 10px;
+}
 .class-card button{
   width:100%;
   background:var(--green);
@@ -127,7 +111,6 @@ header{
 <header>
   <div class="header-inner">
 
-    <!-- ✅ الشعار الصحيح -->
     <div class="school">
       <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
       <div class="school-text">
@@ -137,16 +120,37 @@ header{
       </div>
     </div>
 
-    <!-- ✅ زر التقارير -->
-    <button class="reports-btn" onclick="location.href='reportsلفصول المسجّلة: —</div>
-  <div>إجمالي الغائبين: —</div>
+    <button class="reports-btn" onclick="location.href='reports.html'lassesView" class="classes"></div>
 </div>
 
-<div class="container">
-  <div class="classes">
-    <!-- بطاقات الفصول -->
-  </div>
-</div>
+<script>
+/* تحميل أسماء الفصول فقط (اختبار أساسي) */
+async function loadClasses(){
+  try{
+    const res = await fetch("/api/getClasses");
+    const data = await res.json();
+
+    const container = document.getElementById("classesView");
+    container.innerHTML = "";
+
+    data.classes.forEach(cls=>{
+      const card = document.createElement("div");
+      card.className = "class-card";
+      card.innerHTML = `
+        <h3>${cls}</h3>
+        <button>تسجيل الغياب</button>
+      `;
+      container.appendChild(card);
+    });
+
+  }catch(err){
+    console.error(err);
+    alert("خطأ في تحميل الفصول");
+  }
+}
+
+loadClasses();
+</script>
 
 </body>
 </html>
