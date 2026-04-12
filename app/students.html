@@ -1,162 +1,290 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الغياب</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الغياب</title>
 
-    <style>
-        body {
-            font-family: 'Tahoma';
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
+<style>
+:root{
+  --green:#1f8f55;
+  --red:#dc3545;
+  --gray:#adb5bd;
+  --bg:#f4f6f5;
+  --card:#ffffff;
+}
 
-        h1 {
-            text-align: center;
-            color: #333;
-        }
+body{
+  margin:0;
+  font-family:'Cairo', Arial, sans-serif;
+  background:var(--bg);
+  color:#2c3e50;
+}
 
-        #classSelect {
-            width: 250px;
-            padding: 10px;
-            margin: 20px auto;
-            display: block;
-        }
+/* ===== Header ===== */
+header{
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
+}
+.header-inner{
+  max-width:1000px;
+  margin:auto;
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-        .student-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            box-shadow: 0 0 5px #ccc;
-        }
+.school{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school img{
+  height:56px;
+}
+.school-text{
+  font-size:14px;
+  line-height:1.4;
+}
+.school-text strong{
+  font-size:16px;
+}
 
-        .status-btn {
-            padding: 8px 18px;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+.reports-btn{
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:10px;
+  font-size:14px;
+  cursor:pointer;
+  white-space:nowrap;
+}
 
-        .present {
-            background: #28a745;
-        }
+/* ===== Container ===== */
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
 
-        .absent {
-            background: #dc3545;
-        }
-    </style>
+/* ===== Classes ===== */
+.classes{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+@media (min-width:600px){
+  .classes{grid-template-columns:repeat(2,1fr);}
+}
+@media (min-width:900px){
+  .classes{grid-template-columns:repeat(3,1fr);}
+}
 
+.class-card{
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.class-card h3{
+  margin:0 0 10px;
+}
+.class-card button{
+  width:100%;
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:10px;
+  font-size:15px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* ===== Attendance ===== */
+.hidden{display:none}
+
+.attendance{
+  background:var(--card);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.student{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+.student:last-child{border:none}
+
+.status-btn{
+  border:none;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.present{
+  background:#d1e7dd;
+  color:#0f5132;
+}
+.absent{
+  background:#f8d7da;
+  color:#842029;
+}
+
+.actions{
+  margin-top:20px;
+}
+.actions button{
+  width:100%;
+  padding:14px;
+  font-size:16px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+}
+.save-btn{
+  background:var(--green);
+  color:white;
+  margin-bottom:10px;
+}
+.back-btn{
+  background:#6c757d;
+  color:white;
+}
+</style>
 </head>
 
 <body>
 
-    <h1>تسجيل الغياب</h1>
+<header>
+  <div class="header-inner">
 
-    <select id="classSelect">
-        <option value="">اختر الفصل</option>
-    </select>
+    <div class="school">
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
+      <div class="school-text">
+        وزارة التعليم<br>
+        إدارة التعليم بمنطقة الباحة<br>
+        <strong>متوسطة العسلة</strong>
+      </div>
+    </div>
 
+    <button class="reports-btn" onclick="location.href='reports.htmlقات الفصول -->
+  <div id="classesView" class="classes"></div>
+
+  <!-- داخل الفصل -->
+  <div id="attendanceView" class="attendance hidden">
+    <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
 
-    <!-- ✅ كل سكربت الصفحة داخلها بدون ملف خارجي -->
-    <script>
-        // ============================
-        // رابط API الخاص بك
-        // ============================
-        const API_BASE = "https://YOUR-FUNCTION-APP.azurewebsites.net/api";
+    <div class="actions">
+      <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+      <button class="back-btn" onclick="backToClasses()">⬅️ الرجوع للفصول</button>
+    </div>
+  </div>
 
+</div>
 
-        // ============================
-        // تحميل الفصول عند فتح الصفحة
-        // ============================
-        document.addEventListener("DOMContentLoaded", () => {
-            loadClasses();
-        });
+<script>
+let selectedClass = null;
+let absentees = [];
 
+/* تحميل الفصول */
+async function loadClasses(){
+  const container = document.getElementById("classesView");
+  container.innerHTML = "جاري التحميل...";
 
-        // ============================
-        // تحميل الفصول
-        // ============================
-        function loadClasses() {
-            fetch(`${API_BASE}/getClasses`)
-                .then(response => response.json())
-                .then(classes => {
-                    const select = document.getElementById("classSelect");
-                    select.innerHTML = `<option value="">اختر الفصل</option>`;
+  const res = await fetch("/api/getClasses");
+  const data = await res.json();
 
-                    classes.forEach(c => {
-                        const op = document.createElement("option");
-                        op.value = c.id;
-                        op.textContent = c.name;
-                        select.appendChild(op);
-                    });
+  container.innerHTML = "";
 
-                    select.addEventListener("change", () => {
-                        if (select.value !== "") loadStudents(select.value);
-                    });
-                })
-                .catch(err => {
-                    alert("خطأ في تحميل الفصول");
-                    console.error(err);
-                });
-        }
+  data.classes.forEach(cls=>{
+    const card = document.createElement("div");
+    card.className = "class-card";
+    card.innerHTML = `
+      <h3>${cls}</h3>
+      <button onclick="openClass('${cls}')">تسجيل الغياب</button>
+    `;
+    container.appendChild(card);
+  });
+}
 
+/* فتح فصل */
+async function openClass(cls){
+  selectedClass = cls;
+  absentees = [];
 
-        // ============================
-        // تحميل الطلاب
-        // ============================
-        function loadStudents(classId) {
-            fetch(`${API_BASE}/getStudents?classId=${classId}`)
-                .then(response => response.json())
-                .then(students => {
-                    const list = document.getElementById("studentsList");
-                    list.innerHTML = "";
+  document.getElementById("classesView").classList.add("hidden");
+  document.getElementById("attendanceView").classList.remove("hidden");
+  document.getElementById("classTitle").innerText = cls;
 
-                    students.forEach(std => {
-                        const card = document.createElement("div");
-                        card.className = "student-card";
+  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data = await res.json();
 
-                        const name = document.createElement("span");
-                        name.textContent = std.name;
+  const list = document.getElementById("studentsList");
+  list.innerHTML = "";
 
-                        const btn = document.createElement("button");
-                        btn.textContent = "حاضر";
-                        btn.className = "status-btn present";
-                        btn.dataset.status = "Present";
+  data.students.forEach(s=>{
+    const row = document.createElement("div");
+    row.className = "student";
 
-                        btn.addEventListener("click", () => {
-                            if (btn.dataset.status === "Present") {
-                                btn.dataset.status = "Absent";
-                                btn.textContent = "غائب";
-                                btn.className = "status-btn absent";
-                            } else {
-                                btn.dataset.status = "Present";
-                                btn.textContent = "حاضر";
-                                btn.className = "status-btn present";
-                            }
-                        });
+    const name = document.createElement("span");
+    name.innerText = s.Name;
 
-                        card.appendChild(name);
-                        card.appendChild(btn);
+    const btn = document.createElement("button");
+    btn.className = "status-btn present";
+    btn.innerText = "حاضر";
 
-                        list.appendChild(card);
-                    });
-                })
-                .catch(err => {
-                    alert("خطأ في تحميل الطلاب");
-                    console.error(err);
-                });
-        }
-    </script>
+    btn.onclick = () => {
+      if(btn.classList.contains("present")){
+        btn.classList.replace("present","absent");
+        btn.innerText = "غائب";
+        absentees.push(s.Name);
+      }else{
+        btn.classList.replace("absent","present");
+        btn.innerText = "حاضر";
+        absentees = absentees.filter(n => n !== s.Name);
+      }
+    };
+
+    row.appendChild(name);
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+}
+
+/* حفظ الغياب */
+async function saveAttendance(){
+  const today = new Date().toISOString().split("T")[0];
+
+  await fetch("/api/saveAttendance",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      className: selectedClass,
+      date: today,
+      absentees
+    })
+  });
+
+  alert("✅ تم حفظ الغياب");
+  backToClasses();
+}
+
+/* رجوع */
+function backToClasses(){
+  document.getElementById("attendanceView").classList.add("hidden");
+  document.getElementById("classesView").classList.remove("hidden");
+}
+
+/* تشغيل */
+loadClasses();
+</script>
 
 </body>
-
 </html>
