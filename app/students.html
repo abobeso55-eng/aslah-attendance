@@ -66,7 +66,96 @@
 
     <div id="studentsList"></div>
 
-    <script src="students.js"></script>
+    <!-- ✅ كل سكربت الصفحة داخلها بدون ملف خارجي -->
+    <script>
+        // ============================
+        // رابط API الخاص بك
+        // ============================
+        const API_BASE = "https://YOUR-FUNCTION-APP.azurewebsites.net/api";
+
+
+        // ============================
+        // تحميل الفصول عند فتح الصفحة
+        // ============================
+        document.addEventListener("DOMContentLoaded", () => {
+            loadClasses();
+        });
+
+
+        // ============================
+        // تحميل الفصول
+        // ============================
+        function loadClasses() {
+            fetch(`${API_BASE}/getClasses`)
+                .then(response => response.json())
+                .then(classes => {
+                    const select = document.getElementById("classSelect");
+                    select.innerHTML = `<option value="">اختر الفصل</option>`;
+
+                    classes.forEach(c => {
+                        const op = document.createElement("option");
+                        op.value = c.id;
+                        op.textContent = c.name;
+                        select.appendChild(op);
+                    });
+
+                    select.addEventListener("change", () => {
+                        if (select.value !== "") loadStudents(select.value);
+                    });
+                })
+                .catch(err => {
+                    alert("خطأ في تحميل الفصول");
+                    console.error(err);
+                });
+        }
+
+
+        // ============================
+        // تحميل الطلاب
+        // ============================
+        function loadStudents(classId) {
+            fetch(`${API_BASE}/getStudents?classId=${classId}`)
+                .then(response => response.json())
+                .then(students => {
+                    const list = document.getElementById("studentsList");
+                    list.innerHTML = "";
+
+                    students.forEach(std => {
+                        const card = document.createElement("div");
+                        card.className = "student-card";
+
+                        const name = document.createElement("span");
+                        name.textContent = std.name;
+
+                        const btn = document.createElement("button");
+                        btn.textContent = "حاضر";
+                        btn.className = "status-btn present";
+                        btn.dataset.status = "Present";
+
+                        btn.addEventListener("click", () => {
+                            if (btn.dataset.status === "Present") {
+                                btn.dataset.status = "Absent";
+                                btn.textContent = "غائب";
+                                btn.className = "status-btn absent";
+                            } else {
+                                btn.dataset.status = "Present";
+                                btn.textContent = "حاضر";
+                                btn.className = "status-btn present";
+                            }
+                        });
+
+                        card.appendChild(name);
+                        card.appendChild(btn);
+
+                        list.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    alert("خطأ في تحميل الطلاب");
+                    console.error(err);
+                });
+        }
+    </script>
 
 </body>
 
