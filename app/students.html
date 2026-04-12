@@ -1,154 +1,73 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الغياب</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الغياب</title>
 
-<style>
-:root{
-  --green:#1f8f55;
-  --bg:#f4f6f5;
-  --card:#ffffff;
-}
+    <style>
+        body {
+            font-family: 'Tahoma';
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
 
-body{
-  margin:0;
-  font-family:'Cairo', Arial, sans-serif;
-  background:var(--bg);
-  color:#2c3e50;
-}
+        h1 {
+            text-align: center;
+            color: #333;
+        }
 
-/* ===== Header ===== */
-header{
-  background:#ffffff;
-  border-bottom:3px solid var(--green);
-}
-.header-inner{
-  max-width:1000px;
-  margin:auto;
-  padding:14px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+        #classSelect {
+            width: 250px;
+            padding: 10px;
+            margin: 20px auto;
+            display: block;
+        }
 
-/* School info */
-.school{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.school img{
-  height:56px;
-}
-.school-text{
-  font-size:14px;
-  line-height:1.4;
-}
-.school-text strong{
-  font-size:16px;
-}
+        .student-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 5px #ccc;
+        }
 
-/* Reports button */
-.reports-btn{
-  background:var(--green);
-  color:white;
-  border:none;
-  padding:10px 16px;
-  border-radius:10px;
-  font-size:14px;
-  cursor:pointer;
-  white-space:nowrap;
-}
+        .status-btn {
+            padding: 8px 18px;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-/* ===== Container ===== */
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:16px;
-}
+        .present {
+            background: #28a745;
+        }
 
-/* ===== Classes ===== */
-.classes{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:16px;
-}
-@media (min-width:600px){
-  .classes{grid-template-columns:repeat(2,1fr);}
-}
-@media (min-width:900px){
-  .classes{grid-template-columns:repeat(3,1fr);}
-}
+        .absent {
+            background: #dc3545;
+        }
+    </style>
 
-.class-card{
-  background:var(--card);
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-.class-card h3{
-  margin:0 0 10px;
-}
-.class-card button{
-  width:100%;
-  background:var(--green);
-  color:white;
-  border:none;
-  padding:10px;
-  font-size:15px;
-  border-radius:10px;
-  cursor:pointer;
-}
-</style>
 </head>
 
 <body>
 
-<header>
-  <div class="header-inner">
+    <h1>تسجيل الغياب</h1>
 
-    <div class="school">
-      <img src="assets/moe-logo.png" alt="وزارة التعليم">
-      <div class="school-text">
-        وزارة التعليم<br>
-        إدارة التعليم بمنطقة الباحة<br>
-        <strong>متوسطة العسلة</strong>
-      </div>
-    </div>
+    <select id="classSelect">
+        <option value="">اختر الفصل</option>
+    </select>
 
-    <!-- ✅ زر التقارير -->
-    <button class="reports-btn" onclick="location.href='reports.html'id="classesView" class="classes"></div>
-</div>
+    <div id="studentsList"></div>
 
-<script>
-async function loadClasses(){
-  try{
-    const res = await fetch("/api/getClasses");
-    const data = await res.json();
-
-    const container = document.getElementById("classesView");
-    container.innerHTML = "";
-
-    data.classes.forEach(cls=>{
-      const card = document.createElement("div");
-      card.className = "class-card";
-      card.innerHTML = `
-        <h3>${cls}</h3>
-        <button>تسجيل الغياب</button>
-      `;
-      container.appendChild(card);
-    });
-
-  }catch(err){
-    console.error(err);
-    alert("خطأ في تحميل الفصول");
-  }
-}
-
-loadClasses();
-</script>
+    <script src="students.js"></script>
 
 </body>
+
 </html>
