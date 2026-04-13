@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>تسجيل الغياب</title>
 
 <style>
@@ -14,7 +14,8 @@
   --card:#ffffff;
 }
 
-  
+*{ box-sizing:border-box; }
+
 body{
   margin:0;
   font-family:'Cairo', Arial, sans-serif;
@@ -34,33 +35,62 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:12px;
 }
-
 .school{
   display:flex;
   align-items:center;
   gap:12px;
+  min-width:0;
 }
 .school img{
   height:56px;
+  flex:0 0 auto;
 }
 .school-text{
   font-size:14px;
   line-height:1.4;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.school-text strong{
-  font-size:16px;
-}
+.school-text strong{ font-size:16px; }
 
 .reports-btn{
   background:var(--green);
-  color:white;
+  color:#fff;
   border:none;
-  padding:10px 16px;
+  padding:10px 14px;
   border-radius:10px;
   font-size:14px;
   cursor:pointer;
   white-space:nowrap;
+  flex:0 0 auto;
+}
+
+/* ===== Counter + Alert ===== */
+.counter{
+  max-width:1000px;
+  margin:10px auto 0;
+  padding:12px 16px;
+  background:#e9f5ef;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-weight:bold;
+  flex-wrap:wrap;
+}
+
+.alert{
+  max-width:1000px;
+  margin:10px auto;
+  padding:12px 16px;
+  background:#d1e7dd;
+  color:#0f5132;
+  border-radius:12px;
+  display:none;
+  font-weight:bold;
 }
 
 /* ===== Container ===== */
@@ -70,17 +100,17 @@ header{
   padding:16px;
 }
 
-/* ===== Classes ===== */
+/* ===== Classes grid ===== */
 .classes{
   display:grid;
   grid-template-columns:1fr;
   gap:16px;
 }
 @media (min-width:600px){
-  .classes{grid-template-columns:repeat(2,1fr);}
+  .classes{ grid-template-columns:repeat(2,1fr); }
 }
 @media (min-width:900px){
-  .classes{grid-template-columns:repeat(3,1fr);}
+  .classes{ grid-template-columns:repeat(3,1fr); }
 }
 
 .class-card{
@@ -88,10 +118,15 @@ header{
   border-radius:14px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid var(--gray);
 }
-.class-card h3{
-  margin:0 0 10px;
-}
+.class-card.ok{ border-top-color:var(--green); }
+.class-card.absent{ border-top-color:var(--red); }
+
+.class-card h3{ margin:0 0 6px; }
+.class-card .count{ color:#777; margin-bottom:6px; }
+.class-card .status{ font-size:14px; margin-bottom:10px; }
+
 .class-card button{
   width:100%;
   background:var(--green);
@@ -103,8 +138,8 @@ header{
   cursor:pointer;
 }
 
-/* ===== Attendance ===== */
-.hidden{display:none}
+/* ===== Attendance view ===== */
+.hidden{ display:none; }
 
 .attendance{
   background:var(--card);
@@ -120,7 +155,7 @@ header{
   padding:10px 0;
   border-bottom:1px solid #eee;
 }
-.student:last-child{border:none}
+.student:last-child{ border:none; }
 
 .status-btn{
   border:none;
@@ -128,14 +163,8 @@ header{
   border-radius:20px;
   cursor:pointer;
 }
-.present{
-  background:#d1e7dd;
-  color:#0f5132;
-}
-.absent{
-  background:#f8d7da;
-  color:#842029;
-}
+.present{ background:#d1e7dd; color:#0f5132; }
+.absent{ background:#f8d7da; color:#842029; }
 
 .actions{
   margin-top:20px;
@@ -148,14 +177,18 @@ header{
   border:none;
   cursor:pointer;
 }
-.save-btn{
-  background:var(--green);
-  color:white;
-  margin-bottom:10px;
-}
-.back-btn{
-  background:#6c757d;
-  color:white;
+.save-btn{ background:var(--green); color:white; margin-bottom:10px; }
+.back-btn{ background:#6c757d; color:white; }
+
+/* Error */
+.error{
+  background:#fff3cd;
+  color:#664d03;
+  border:1px solid #ffecb5;
+  padding:12px 16px;
+  border-radius:12px;
+  margin:10px 0;
+  display:none;
 }
 </style>
 </head>
@@ -164,20 +197,33 @@ header{
 
 <header>
   <div class="header-inner">
-
     <div class="school">
-      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
+      assets/moe-logo.png
       <div class="school-text">
-        وزارة التعليم<br>
-        إدارة التعليم بمنطقة الباحة<br>
+        وزارة التعليم<br />
+        إدارة التعليم بمنطقة الباحة<br />
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
+    reports.html📊 التقارير</button>
+  </div>
+</header>
 
-    <button class="reports-btn" onclick="location.href='reports.htmlقات الفصول -->
+<div class="counter">
+  <div id="counterClasses">الفصول المسجّلة: ...</div>
+  <div id="counterAbsent">إجمالي الغائبين: ...</div>
+</div>
+
+<div id="successAlert" class="alert">✅ تم تسجيل الغياب بنجاح</div>
+
+<div class="container">
+
+  <div id="errorBox" class="error"></div>
+
+  <!-- Cards -->
   <div id="classesView" class="classes"></div>
 
-  <!-- داخل الفصل -->
+  <!-- Attendance -->
   <div id="attendanceView" class="attendance hidden">
     <h2 id="classTitle"></h2>
     <div id="studentsList"></div>
@@ -191,32 +237,147 @@ header{
 </div>
 
 <script>
+const todayISO = new Date().toISOString().split("T")[0];
 let selectedClass = null;
 let absentees = [];
+let totalClasses = 0;
+let registeredClasses = 0;
+let totalAbsent = 0;
 
-/* تحميل الفصول */
+/* ترتيب الفصول: أول ثم ثاني ثم ثالث */
+function classOrder(name){
+  if(name.includes("أول")) return 1;
+  if(name.includes("ثاني")) return 2;
+  if(name.includes("ثالث")) return 3;
+  return 99;
+}
+
+function showAlert(){
+  const el = document.getElementById("successAlert");
+  el.style.display = "block";
+  setTimeout(()=> el.style.display = "none", 3000);
+}
+
+function showError(msg){
+  const box = document.getElementById("errorBox");
+  box.style.display = "block";
+  box.textContent = msg;
+}
+function clearError(){
+  const box = document.getElementById("errorBox");
+  box.style.display = "none";
+  box.textContent = "";
+}
+
+/* تحديث العدّاد */
+function updateCounter(){
+  document.getElementById("counterClasses").innerText =
+    `الفصول المسجّلة: ${registeredClasses} من ${totalClasses}`;
+  document.getElementById("counterAbsent").innerText =
+    `إجمالي الغائبين: ${totalAbsent}`;
+}
+
+/* تحميل الفصول + الحالة + عدد الطلاب (بشكل متوازي لتحسين السرعة) */
 async function loadClasses(){
-  const container = document.getElementById("classesView");
-  container.innerHTML = "جاري التحميل...";
+  clearError();
 
-  const res = await fetch("/api/getClasses");
-  const data = await res.json();
+  const container = document.getElementById("classesView");
+  container.innerHTML = "جاري تحميل الفصول...";
+
+  let classData;
+  try{
+    const res = await fetch("/api/getClasses");
+    if(!res.ok) throw new Error(`getClasses failed: ${res.status}`);
+    classData = await res.json();
+  }catch(e){
+    showError("تعذر تحميل الفصول. تأكد أن /api/getClasses يعمل (قد يكون API غير منشور).");
+    container.innerHTML = "";
+    updateCounterZero();
+    return;
+  }
+
+  const classes = (classData.classes || []).slice().sort((a,b)=>{
+    const o1 = classOrder(a), o2 = classOrder(b);
+    if(o1 !== o2) return o1 - o2;
+    return a.localeCompare(b, "ar");
+  });
+
+  totalClasses = classes.length;
+  registeredClasses = 0;
+  totalAbsent = 0;
 
   container.innerHTML = "";
 
-  data.classes.forEach(cls=>{
-    const card = document.createElement("div");
-    card.className = "class-card";
-    card.innerHTML = `
-      <h3>${cls}</h3>
-      <button onclick="openClass('${cls}')">تسجيل الغياب</button>
-    `;
-    container.appendChild(card);
-  });
+  try{
+    // حالة الغياب اليوم + عدد الطلاب (بالتوازي)
+    const reportsPromise = Promise.all(
+      classes.map(c =>
+        fetch(`/api/getAttendanceReport?class=${encodeURIComponent(c)}&date=${todayISO}`)
+          .then(r => r.ok ? r.json() : ({ absent: null }))
+      )
+    );
+
+    const countsPromise = Promise.all(
+      classes.map(c =>
+        fetch(`/api/getStudents?class=${encodeURIComponent(c)}`)
+          .then(r => r.ok ? r.json() : ({ students: [] }))
+      )
+    );
+
+    const [reports, counts] = await Promise.all([reportsPromise, countsPromise]);
+
+    classes.forEach((cls, i) => {
+      const rep = reports[i] || {};
+      const cnt = counts[i] || { students: [] };
+
+      const absentCount = (rep.absent === undefined || rep.absent === null) ? null : rep.absent;
+      const studentsCount = Array.isArray(cnt.students) ? cnt.students.length : 0;
+
+      const card = document.createElement("div");
+      card.className = "class-card";
+
+      let statusText = "لم يتم تسجيل الغياب";
+
+      if(absentCount !== null){
+        registeredClasses++;
+        totalAbsent += absentCount;
+
+        if(absentCount === 0){
+          card.classList.add("ok");
+          statusText = "تم تسجيل الغياب – لا يوجد غياب";
+        }else{
+          card.classList.add("absent");
+          statusText = `تم تسجيل الغياب – عدد الغائبين: ${absentCount}`;
+        }
+      }
+
+      card.innerHTML = `
+        <h3>${cls}</h3>
+        <div class="count">عدد الطلاب: ${studentsCount}</div>
+        <div class="status">${statusText}</div>
+        <button type="button">تسجيل الغياب</button>
+      `;
+
+      card.querySelector("button").onclick = () => openClass(cls);
+      container.appendChild(card);
+    });
+
+    updateCounter();
+
+  }catch(e){
+    showError("حدث خطأ أثناء تحميل بيانات الفصول (تقارير/طلاب). جرّب تحديث الصفحة.");
+    updateCounterZero();
+  }
 }
 
-/* فتح فصل */
+function updateCounterZero(){
+  document.getElementById("counterClasses").innerText = "الفصول المسجّلة: 0";
+  document.getElementById("counterAbsent").innerText = "إجمالي الغائبين: 0";
+}
+
+/* فتح فصل (تحميل الأسماء فقط عند الدخول للفصل) */
 async function openClass(cls){
+  clearError();
   selectedClass = cls;
   absentees = [];
 
@@ -224,68 +385,7 @@ async function openClass(cls){
   document.getElementById("attendanceView").classList.remove("hidden");
   document.getElementById("classTitle").innerText = cls;
 
-  const res = await fetch(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  const data = await res.json();
-
   const list = document.getElementById("studentsList");
-  list.innerHTML = "";
+  list.innerHTML = "جاري تحميل الطلاب...";
 
-  data.students.forEach(s=>{
-    const row = document.createElement("div");
-    row.className = "student";
-
-    const name = document.createElement("span");
-    name.innerText = s.Name;
-
-    const btn = document.createElement("button");
-    btn.className = "status-btn present";
-    btn.innerText = "حاضر";
-
-    btn.onclick = () => {
-      if(btn.classList.contains("present")){
-        btn.classList.replace("present","absent");
-        btn.innerText = "غائب";
-        absentees.push(s.Name);
-      }else{
-        btn.classList.replace("absent","present");
-        btn.innerText = "حاضر";
-        absentees = absentees.filter(n => n !== s.Name);
-      }
-    };
-
-    row.appendChild(name);
-    row.appendChild(btn);
-    list.appendChild(row);
-  });
-}
-
-/* حفظ الغياب */
-async function saveAttendance(){
-  const today = new Date().toISOString().split("T")[0];
-
-  await fetch("/api/saveAttendance",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({
-      className: selectedClass,
-      date: today,
-      absentees
-    })
-  });
-
-  alert("✅ تم حفظ الغياب");
-  backToClasses();
-}
-
-/* رجوع */
-function backToClasses(){
-  document.getElementById("attendanceView").classList.add("hidden");
-  document.getElementById("classesView").classList.remove("hidden");
-}
-
-/* تشغيل */
-loadClasses();
-</script>
-
-</body>
-</html>
+  try{
