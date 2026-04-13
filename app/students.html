@@ -1,356 +1,328 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل الغياب</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الغياب</title>
 
-  <style>
-    :root{
-      --green:#1f8f55;
-      --red:#dc3545;
-      --gray:#adb5bd;
-      --bg:#f4f6f5;
-      --card:#ffffff;
-    }
+<style>
+:root{
+  --green:#1f8f55;
+  --red:#dc3545;
+  --gray:#adb5bd;
+  --bg:#f4f6f5;
+  --card:#ffffff;
+}
 
-    *{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family:'Cairo',Arial,sans-serif;
+  background:var(--bg);
+  color:#2c3e50;
+}
 
-    body{
-      margin:0;
-      font-family:'Cairo', Arial, sans-serif;
-      background:var(--bg);
-      color:#2c3e50;
-    }
+/* ===== Header ===== */
+header{
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
+}
+.header-inner{
+  max-width:1000px;
+  margin:auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.school{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school img{
+  height:56px;
+}
+.school-text{
+  font-size:14px;
+  line-height:1.4;
+  white-space:nowrap;
+}
+.school-text strong{
+  font-size:16px;
+}
 
-    /* ===== Header ===== */
-    header{
-      background:#ffffff;
-      border-bottom:3px solid var(--green);
-    }
-    .header-inner{
-      max-width:1000px;
-      margin:auto;
-      padding:14px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-    }
-    .school{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-    .school img{
-      height:56px;
-      width:auto;
-      flex:0 0 auto;
-    }
-    .school-text{
-      font-size:14px;
-      line-height:1.4;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .school-text strong{ font-size:16px; }
+.reports-btn{
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:10px;
+  white-space:nowrap;
+  cursor:pointer;
+}
 
-    .reports-btn{
-      background:var(--green);
-      color:white;
-      border:none;
-      padding:10px 14px;
-      border-radius:10px;
-      font-size:14px;
-      cursor:pointer;
-      white-space:nowrap;
-      flex:0 0 auto;
-    }
+/* ===== Counter ===== */
+.counter{
+  max-width:1000px;
+  margin:12px auto 0;
+  background:#e8f5e9;
+  padding:12px 16px;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+}
 
-    /* ===== Counter + Alert + Error ===== */
-    .counter{
-      max-width:1000px;
-      margin:10px auto 0;
-      padding:12px 16px;
-      background:#e9f5ef;
-      border-radius:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-weight:bold;
-      flex-wrap:wrap;
-    }
+/* ===== Error ===== */
+#errorBox{
+  max-width:1000px;
+  margin:12px auto;
+  background:#fff3cd;
+  color:#7a5600;
+  padding:12px 16px;
+  border-radius:10px;
+  display:none;
+}
 
-    .alert{
-      max-width:1000px;
-      margin:10px auto;
-      padding:12px 16px;
-      background:#d1e7dd;
-      color:#0f5132;
-      border-radius:12px;
-      display:none;
-      font-weight:bold;
-    }
+/* ===== Class Cards ===== */
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+.classes{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+@media (min-width:700px){
+  .classes{ grid-template-columns:repeat(2,1fr); }
+}
+@media (min-width:1000px){
+  .classes{ grid-template-columns:repeat(3,1fr); }
+}
 
-    .error{
-      max-width:1000px;
-      margin:10px auto;
-      padding:12px 16px;
-      background:#fff3cd;
-      color:#664d03;
-      border:1px solid #ffecb5;
-      border-radius:12px;
-      display:none;
-    }
+.class-card{
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid var(--gray);
+}
+.class-card.ok{ border-top-color:var(--green); }
+.class-card.absent{ border-top-color:var(--red); }
 
-    /* ===== Container ===== */
-    .container{
-      max-width:1000px;
-      margin:auto;
-      padding:16px;
-    }
+/* ===== Attendance View ===== */
+.hidden{ display:none; }
 
-    /* ===== Classes grid ===== */
-    .classes{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:16px;
-    }
-    @media (min-width:600px){
-      .classes{ grid-template-columns:repeat(2,1fr); }
-    }
-    @media (min-width:900px){
-      .classes{ grid-template-columns:repeat(3,1fr); }
-    }
+.attendance{
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.student{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+.status-btn{
+  border:none;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  min-width:74px;
+}
+.present{ background:#d1e7dd; color:#0f5132; }
+.absent{ background:#f8d7da; color:#842029; }
 
-    .class-card{
-      background:var(--card);
-      border-radius:14px;
-      padding:16px;
-      box-shadow:0 2px 8px rgba(0,0,0,.08);
-      border-top:6px solid var(--gray);
-    }
-    .class-card.ok{ border-top-color:var(--green); }
-    .class-card.absent{ border-top-color:var(--red); }
-
-    .class-card h3{ margin:0 0 6px; }
-    .class-card .count{ color:#777; margin-bottom:6px; }
-    .class-card .status{ font-size:14px; margin-bottom:10px; }
-
-    .class-card button{
-      width:100%;
-      background:var(--green);
-      color:white;
-      border:none;
-      padding:10px;
-      font-size:15px;
-      border-radius:10px;
-      cursor:pointer;
-    }
-
-    /* ===== Attendance view ===== */
-    .hidden{ display:none; }
-
-    .attendance{
-      background:var(--card);
-      border-radius:14px;
-      padding:16px;
-      box-shadow:0 2px 8px rgba(0,0,0,.08);
-    }
-
-    .student{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:10px 0;
-      border-bottom:1px solid #eee;
-    }
-    .student:last-child{ border:none; }
-
-    .status-btn{
-      border:none;
-      padding:6px 14px;
-      border-radius:20px;
-      cursor:pointer;
-      min-width:74px;
-    }
-    .present{ background:#d1e7dd; color:#0f5132; }
-    .absent{ background:#f8d7da; color:#842029; }
-
-    .actions{
-      margin-top:20px;
-    }
-    .actions button{
-      width:100%;
-      padding:14px;
-      font-size:16px;
-      border-radius:14px;
-      border:none;
-      cursor:pointer;
-    }
-    .save-btn{ background:var(--green); color:white; margin-bottom:10px; }
-    .back-btn{ background:#6c757d; color:white; }
-  </style>
+.actions{
+  margin-top:20px;
+}
+.actions button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  cursor:pointer;
+}
+.save-btn{ background:var(--green); color:white; margin-bottom:10px; }
+.back-btn{ background:#6c757d; color:white; }
+</style>
 </head>
 
 <body>
 
-  <header>
-    <div class="header-inner">
-      <div class="school">
-        assets/moe-logo.png
-        <div class="school-text">
-          وزارة التعليم<br />
-          إدارة التعليم بمنطقة الباحة<br />
-          <strong>متوسطة العسلة</strong>
-        </div>
-      </div>
+<header>
+  <div class="header-inner">
 
-      reports.html
-        📊 التقارير
-      </button>
-    </div>
-  </header>
-
-  <div class="counter">
-    <div id="counterClasses">الفصول المسجّلة: ...</div>
-    <div id="counterAbsent">إجمالي الغائبين: ...</div>
-  </div>
-
-  <div id="successAlert" class="alert">✅ تم تسجيل الغياب بنجاح</div>
-  <div id="errorBox" class="error"></div>
-
-  <div class="container">
-    <!-- بطاقات الفصول -->
-    <div id="classesView" class="classes"></div>
-
-    <!-- داخل الفصل -->
-    <div id="attendanceView" class="attendance hidden">
-      <h2 id="classTitle"></h2>
-      <div id="studentsList"></div>
-
-      <div class="actions">
-        <button class="save-btn" type="button" onclick="saveAttendance()">💾 حفظ الغياب</button>
-        <button class="back-btn" type="button" onclick="backToClasses()">⬅️ الرجوع للفصول</button>
+    <div class="school">
+      <img src="assets/moe-logo.png" alt="شعار">
+      <div class="school-text">
+        وزارة التعليم<br>
+        إدارة التعليم بمنطقة الباحة<br>
+        <strong>متوسطة العسلة</strong>
       </div>
     </div>
+
+    <button class="reports-btn" onclick="locationnter">
+  <div id="counterClasses">الفصول المسجّلة: ...</div>
+  <div id="counterAbsent">إجمالي الغائبين: ...</div>
+</div>
+
+<div id="errorBox"></div>
+
+<div class="container">
+
+  <div id="classesView" class="classes"></div>
+
+  <div id="attendanceView" class="attendance hidden">
+    <h2 id="classTitle"></h2>
+    <div id="studentsList">جاري التحميل...</div>
+
+    <div class="actions">
+      <button class="save-btn" onclick="saveAttendance()">💾 حفظ</button>
+      <button class="back-btn" onclick="backToClasses()">⬅️ رجوع</button>
+    </div>
   </div>
+
+</div>
 
 <script>
-(() => {
-  const todayISO = new Date().toISOString().split("T")[0];
+document.addEventListener("DOMContentLoaded", () => {
+  loadDashboard();
+});
 
-  let selectedClass = null;
-  let absentees = [];
+function showError(msg){
+  const e = document.getElementById("errorBox");
+  e.innerText = msg;
+  e.style.display = "block";
+}
 
-  // عناصر الصفحة (IDs ثابتة)
+async function fetchJson(url){
+  let res = await fetch(url, {cache:"no-store"});
+  let txt = await res.text();
+  try{ 
+    return JSON.parse(txt);
+  }catch{
+    throw new Error("الاستجابة ليست JSON: " + url);
+  }
+}
+
+let selectedClass = null;
+let absentees = [];
+
+async function loadDashboard(){
   const classesView = document.getElementById("classesView");
-  const attendanceView = document.getElementById("attendanceView");
-  const classTitle = document.getElementById("classTitle");
-  const studentsList = document.getElementById("studentsList");
-  const counterClasses = document.getElementById("counterClasses");
-  const counterAbsent = document.getElementById("counterAbsent");
-  const successAlert = document.getElementById("successAlert");
-  const errorBox = document.getElementById("errorBox");
+  classesView.innerHTML = "جاري تحميل الفصول...";
 
-  function showAlert() {
-    successAlert.style.display = "block";
-    setTimeout(() => successAlert.style.display = "none", 3000);
-  }
+  try{
+    const data = await fetchJson("/api/getClasses");
+    const classes = data.classes || [];
 
-  function showError(msg) {
-    errorBox.textContent = msg;
-    errorBox.style.display = "block";
-  }
-
-  function clearError() {
-    errorBox.textContent = "";
-    errorBox.style.display = "none";
-  }
-
-  // قراءة JSON بأمان حتى لو رجع HTML
-  async function fetchJson(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    const text = await res.text();
-    try {
-      const data = JSON.parse(text);
-      if (!res.ok) {
-        const errMsg = data?.error || `HTTP ${res.status}`;
-        throw new Error(errMsg);
-      }
-      return data;
-    } catch (e) {
-      // text كان HTML أو غير JSON
-      throw new Error(`استجابة غير JSON من ${url} (قد تكون 404/خطأ).`);
-    }
-  }
-
-  function classOrder(name) {
-    if (name.includes("أول")) return 1;
-    if (name.includes("ثاني")) return 2;
-    if (name.includes("ثالث")) return 3;
-    return 99;
-  }
-
-  function updateCounter(registered, total, absent) {
-    counterClasses.innerText = `الفصول المسجّلة: ${registered} من ${total}`;
-    counterAbsent.innerText = `إجمالي الغائبين: ${absent}`;
-  }
-
-  async function loadDashboard() {
-    clearError();
-    classesView.innerHTML = "جاري تحميل الفصول...";
-
-    // 1) جلب الفصول
-    const classData = await fetchJson("/api/getClasses");
-    const classes = (classData.classes || []).slice().sort((a,b) => {
-      const o1 = classOrder(a), o2 = classOrder(b);
-      if (o1 !== o2) return o1 - o2;
-      return a.localeCompare(b, "ar");
-    });
-
-    // 2) جلب التقارير + الطلاب (counts) بالتوازي
-    const reportsPromise = Promise.all(
-      classes.map(c =>
-        fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(c)}&date=${todayISO}`)
-          .catch(() => ({ absent: null, absentees: [], total: 0, present: 0 }))
-      )
-    );
-
-    const countsPromise = Promise.all(
-      classes.map(c =>
-        fetchJson(`/api/getStudents?class=${encodeURIComponent(c)}`)
-          .catch(() => ({ students: [] }))
-      )
-    );
-
-    const [reports, counts] = await Promise.all([reportsPromise, countsPromise]);
-
-    // 3) بناء البطاقات
     classesView.innerHTML = "";
 
-    let totalClasses = classes.length;
-    let registeredClasses = 0;
-    let totalAbsent = 0;
-
-    classes.forEach((cls, i) => {
-      const rep = reports[i] || {};
-      const cnt = counts[i] || { students: [] };
-
-      const studentCount = Array.isArray(cnt.students) ? cnt.students.length : 0;
-      const absentCount = (rep.absent === undefined || rep.absent === null) ? null : rep.absent;
-
+    classes.forEach(cls=>{
       const card = document.createElement("div");
       card.className = "class-card";
 
-      let statusText = "لم يتم تسجيل الغياب";
+      card.innerHTML = `
+        <h3>${cls}</h3>
+        <button onclick="openClass('${cls}')">تسجيل الغياب</button>
+      `;
 
-      if (absentCount !== null) {
-        registeredClasses++;
-        totalAbsent += absentCount;
+      classesView.appendChild(card);
+    });
 
-        if (absentCount === 0) {
-          card.classList.add("ok");
-          statusText = "
+  }catch(e){
+    showError("تعذر تحميل الفصول: " + e.message);
+  }
+}
+
+async function openClass(cls){
+  selectedClass = cls;
+  absentees = [];
+
+  document.getElementById("classesView").classList.add("hidden");
+  document.getElementById("attendanceView").classList.remove("hidden");
+  document.getElementById("classTitle").innerText = cls;
+
+  const list = document.getElementById("studentsList");
+  list.innerHTML = "جاري تحميل الطلاب...";
+
+  try{
+    const data = await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+    const students = data.students || [];
+
+    list.innerHTML = "";
+
+    students.forEach(s=>{
+      const row = document.createElement("div");
+      row.className = "student";
+
+      const name = document.createElement("span");
+      name.innerText = s.Name;
+
+      const btn = document.createElement("button");
+      btn.className = "status-btn present";
+      btn.innerText = "حاضر";
+
+      btn.onclick = ()=>{
+        if(btn.classList.contains("present")){
+          btn.classList.replace("present","absent");
+          btn.innerText = "غائب";
+          absentees.push(s.Name);
+        }else{
+          btn.classList.replace("absent","present");
+          btn.innerText = "حاضر";
+          absentees = absentees.filter(n=>n!==s.Name);
+        }
+      };
+
+      row.appendChild(name);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+
+  }catch(e){
+    showError("تعذر تحميل الطلاب: " + e.message);
+  }
+}
+
+async function saveAttendance(){
+  try{
+    let res = await fetch("/api/saveAttendance",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        className: selectedClass,
+        date: new Date().toISOString().split("T")[0],
+        absentees
+      })
+    });
+
+    let txt = await res.text();
+    try{ JSON.parse(txt); }catch{}
+
+    alert("✅ تم حفظ الغياب");
+    backToClasses();
+    loadDashboard();
+
+  }catch(e){
+    showError("فشل حفظ الغياب: " + e.message);
+  }
+}
+
+function backToClasses(){
+  document.getElementById("attendanceView").classList.add("hidden");
+  document.getElementById("classesView").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
+``
