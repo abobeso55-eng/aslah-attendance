@@ -1,168 +1,124 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>تقرير الغياب</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>تقارير الغياب</title>
 
 <style>
+:root{
+  --green:#1f8f55;
+  --bg:#f4f6f5;
+  --card:#ffffff;
+  --red:#dc3545;
+}
+
 body{
-  font-family:'Cairo',Arial,sans-serif;
   margin:0;
-  background:#f4f6f5;
+  font-family:'Cairo', Arial, sans-serif;
+  background:var(--bg);
   color:#2c3e50;
 }
 
-/* ===== Header ===== */
+/* Header */
 header{
   background:#ffffff;
-  padding:15px 25px;
-  border-bottom:4px solid #1f8f55;
+  border-bottom:3px solid var(--green);
 }
 .header-inner{
+  max-width:1100px;
+  margin:auto;
+  padding:14px 16px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
   gap:10px;
 }
-.school{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-.school img{height:60px}
-.school-text{
-  line-height:1.4;
-}
-.school-text .ministry,
-.school-text .admin{
-  color:#1f8f55;
-  font-size:14px;
-}
-.school-text .name{
-  color:#1f8f55;
-  font-size:18px;
-  font-weight:bold;
-}
-.title{
-  color:#1f8f55;
-  font-weight:bold;
-  font-size:18px;
-}
-
-/* زر الرجوع */
-.back-btn{
-  background:#1f8f55;
+header h2{ margin:0; font-size:18px; }
+header .btn{
+  background:var(--green);
   color:white;
   border:none;
-  padding:8px 14px;
-  border-radius:8px;
+  padding:10px 14px;
+  border-radius:10px;
   cursor:pointer;
-  font-size:14px;
+  white-space:nowrap;
 }
 
-/* ===== Layout ===== */
-.container{padding:25px}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
 
-/* ===== Date & Print ===== */
 .toolbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
   gap:10px;
-  margin-bottom:20px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
 }
+
 .toolbar input{
-  padding:6px 10px;
-  font-size:14px;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid #ddd;
 }
+
 .print-btn{
   background:#0d6efd;
-  color:white;
+  color:#fff;
   border:none;
-  padding:8px 18px;
-  border-radius:8px;
+  padding:10px 14px;
+  border-radius:10px;
   cursor:pointer;
-  font-size:14px;
 }
 
-/* ===== Stats ===== */
 .stats{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:20px;
-  margin-bottom:25px;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+  margin-bottom:16px;
 }
 .stat{
-  background:white;
-  border-radius:12px;
-  padding:18px;
-  text-align:center;
+  background:var(--card);
+  border-radius:14px;
+  padding:14px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
-.stat h4{margin:0 0 8px;font-size:14px;color:#777}
-.stat .num{font-size:22px;font-weight:bold}
-.green{color:#198754}
-.red{color:#dc3545}
-.blue{color:#0d6efd}
+.stat .label{ color:#777; font-size:13px; }
+.stat .val{ font-size:20px; font-weight:bold; }
+.red{ color:var(--red); }
+.green{ color:var(--green); }
 
-/* ===== Classes ===== */
-.classes{
+.cards{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:15px;
-  margin-bottom:30px;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:12px;
 }
-.class-card{
-  background:white;
-  border-radius:10px;
-  padding:12px;
-  text-align:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-}
-.class-card h4{margin:0 0 6px;font-size:14px}
-.class-card .ok{color:#198754;font-size:13px}
-.class-card .bad{color:#dc3545;font-size:13px}
 
-/* ===== Absentees ===== */
-.section-title{
-  font-weight:bold;
-  margin-bottom:10px;
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
-.absent-groups{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:20px;
-}
-.absent-card{
-  background:white;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-}
-.absent-card header{
-  background:#1f8f55;
-  color:white;
-  padding:8px 12px;
-  font-size:14px;
-  border-radius:10px 10px 0 0;
-}
-.absent-card ul{
-  list-style:none;
-  padding:10px;
-  margin:0;
-}
-.absent-card li{
-  padding:6px 0;
-  border-bottom:1px solid #eee;
-  font-size:14px;
-}
-.absent-card li:last-child{border:none}
+.card h3{ margin:0 0 8px; }
 
-/* ===== Print ===== */
+.error{
+  background:#fff3cd;
+  color:#664d03;
+  border:1px solid #ffecb5;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:12px;
+  display:none;
+}
+
 @media print{
-  body{background:white}
-  .toolbar,.back-btn{display:none}
+  .toolbar, .print-btn, .back-btn{ display:none !important; }
+  body{ background:#fff; }
 }
 </style>
 </head>
@@ -171,144 +127,110 @@ header{
 
 <header>
   <div class="header-inner">
-    <div class="school">
-      assets/moe-logo.png
-      <div class="school-text">
-        <div class="ministry">وزارة التعليم</div>
-        <div class="admin">إدارة التعليم بمنطقة الباحة</div>
-        <div class="name">متوسطة العسلة</div>
-      </div>
-    </div>
-
-    <div class="title">
-      تقرير الغياب<br>
-      <span id="reportDateText"></span>
-    </div>
-
-    <!-- ✅ زر الرجوع -->
-    <button class="back-btn" onclick="location.href='/button>
+    <h2>📊 تقارير الغياب</h2>
+    students.html⬅️ العودة للغياب</button>
   </div>
 </header>
 
 <div class="container">
+  <div id="errorBox" class="error"></div>
 
-  <!-- التاريخ + الطباعة -->
   <div class="toolbar">
     <div>
       📅 التاريخ:
-      <input type="date" id="reportDate">
+      <input type="date" id="reportDate" />
     </div>
     <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
   </div>
 
-  <!-- الإحصائيات -->
   <div class="stats">
-    <div class="stat">
-      <h4>إجمالي الطلاب</h4>
-      <div id="totalStudents" class="num blue">0</div>
-    </div>
-    <div class="stat">
-      <h4>إجمالي الغائبين</h4>
-      <div id="absentCount" class="num red">0</div>
-    </div>
-    <div class="stat">
-      <h4>نسبة الغياب</h4>
-      <div id="absentPercent" class="num red">0%</div>
-    </div>
-    <div class="stat">
-      <h4>نسبة الحضور</h4>
-      <div id="presentPercent" class="num green">0%</div>
-    </div>
+    <div class="stat"><div class="label">إجمالي الطلاب</div><div id="totalStudents" class="val">0</div></div>
+    <div class="stat"><div class="label">إجمالي الغائبين</div><div id="absentCount" class="val red">0</div></div>
+    <div class="stat"><div class="label">نسبة الغياب</div><div id="absentPercent" class="val red">0%</div></div>
+    <div class="stat"><div class="label">نسبة الحضور</div><div id="presentPercent" class="val green">0%</div></div>
   </div>
 
-  <!-- بطاقات الفصول -->
-  <div class="classes" id="classCards"></div>
-
-  <!-- أسماء الغائبين -->
-  <div class="section-title">أسماء الطلاب الغائبين</div>
-  <div class="absent-groups" id="absentGroups"></div>
-
+  <div id="cards" class="cards"></div>
 </div>
 
 <script>
 const dateInput = document.getElementById("reportDate");
-const reportDateText = document.getElementById("reportDateText");
-
-// اليوم افتراضيًا
-const today = new Date();
-const todayISO = today.toISOString().split("T")[0];
+const todayISO = new Date().toISOString().split("T")[0];
 dateInput.value = todayISO;
-updateDateText(today);
-loadReport(todayISO);
 
-// تغيير التاريخ
-dateInput.onchange = () => {
-  const d = new Date(dateInput.value);
-  updateDateText(d);
-  loadReport(dateInput.value);
-};
-
-function updateDateText(date){
-  const greg = date.toLocaleDateString("ar-SA");
-  const hijri = new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
-    day:"numeric", month:"long", year:"numeric"
-  }).format(date);
-  reportDateText.innerText = `(${greg} | ${hijri})`;
+function showError(msg){
+  const box = document.getElementById("errorBox");
+  box.style.display = "block";
+  box.textContent = msg;
+}
+function clearError(){
+  const box = document.getElementById("errorBox");
+  box.style.display = "none";
+  box.textContent = "";
 }
 
+dateInput.onchange = () => loadReport(dateInput.value);
+
 async function loadReport(date){
-  const classRes = await fetch("/api/getClasses");
-  const classData = await classRes.json();
-  const classes = classData.classes;
+  clearError();
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "جاري التحميل...";
+
+  let classData;
+  try{
+    const res = await fetch("/api/getClasses");
+    if(!res.ok) throw new Error(`getClasses failed: ${res.status}`);
+    classData = await res.json();
+  }catch(e){
+    showError("تعذر تحميل الفصول. تأكد أن /api/getClasses يعمل.");
+    cards.innerHTML = "";
+    return;
+  }
+
+  const classes = classData.classes || [];
 
   let totalStudents = 0;
   let totalAbsent = 0;
 
-  const classCards = document.getElementById("classCards");
-  const absentGroups = document.getElementById("absentGroups");
+  const reports = await Promise.all(
+    classes.map(c =>
+      fetch(`/api/getAttendanceReport?class=${encodeURIComponent(c)}&date=${date}`)
+        .then(r => r.ok ? r.json() : ({ total: 0, absent: 0, present: 0 }))
+    )
+  );
 
-  classCards.innerHTML = "";
-  absentGroups.innerHTML = "";
+  cards.innerHTML = "";
 
-  for(const cls of classes){
-    const res = await fetch(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${date}`);
-    const data = await res.json();
+  reports.forEach((rep, i) => {
+    const cls = classes[i];
+    const t = rep.total ?? 0;
+    const a = rep.absent ?? 0;
+    const p = rep.present ?? (t - a);
 
-    totalStudents += data.total;
-    totalAbsent += data.absent;
+    totalStudents += t;
+    totalAbsent += a;
 
-    const c = document.createElement("div");
-    c.className = "class-card";
-    c.innerHTML = `
-      <h4>${cls}</h4>
-      ${data.absent === 0
-        ? `<div class="ok">✅ لا يوجد غياب</div>`
-        : `<div class="bad">❌ غياب: ${data.absent}</div>`}
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${cls}</h3>
+      <div>✅ حاضر: <strong class="green">${p}</strong></div>
+      <div>❌ غائب: <strong class="red">${a}</strong></div>
     `;
-    classCards.appendChild(c);
-
-    if(data.absentees.length > 0){
-      const box = document.createElement("div");
-      box.className = "absent-card";
-      box.innerHTML = `<header>${cls}</header><ul></ul>`;
-      const ul = box.querySelector("ul");
-      data.absentees.forEach(name=>{
-        const li = document.createElement("li");
-        li.innerText = name;
-        ul.appendChild(li);
-      });
-      absentGroups.appendChild(box);
-    }
-  }
+    cards.appendChild(card);
+  });
 
   const present = totalStudents - totalAbsent;
   document.getElementById("totalStudents").innerText = totalStudents;
   document.getElementById("absentCount").innerText = totalAbsent;
+
   document.getElementById("absentPercent").innerText =
     totalStudents > 0 ? ((totalAbsent / totalStudents) * 100).toFixed(1) + "%" : "0%";
   document.getElementById("presentPercent").innerText =
     totalStudents > 0 ? ((present / totalStudents) * 100).toFixed(1) + "%" : "0%";
 }
+
+loadReport(todayISO);
 </script>
 
 </body>
