@@ -1,232 +1,12 @@
 <!DOCTYPE html>
-max(320px,1fr));<html lang="ar" dir="rtl">
-  gap:20px;
-  margin-bottom:20px;
-}
-.chart-box{
-  background:white;
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-
-/* CLASS CARDS */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:12px;
-}
-.card{
-  background:var(--card);
-  border-radius:14px;
-  padding:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-  border-top:6px solid #adb5bd;
-}
-.card.ok{ border-top-color:var(--green); }
-.card.absent{ border-top-color:var(--red); }
-.card h3{ margin:0 0 8px; }
-
-/* ERROR */
-#errorBox{
-  display:none;
-  background:#fff3cd;
-  color:#7a5600;
-  padding:12px 16px;
-  border-radius:10px;
-  margin-bottom:12px;
-}
-
-@media print{
-  header, .toolbar, .back-btn{ display:none !important; }
-  body{ background:#fff; }
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <div class="header-inner">
-    <h2>📊 تقارير الغياب</h2>
-    <button class="back-btn" onclick="location.href='students.htmld="errorBox"></div>
-
-  <!-- شريط التحكم -->
-  <div class="toolbar">
-    <div>
-      📅 التاريخ:
-      <input type="date" id="reportDate">
-    </div>
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة</button>
-  </div>
-
-  <!-- الملخص -->
-  <div class="summary">
-    <div class="stat">
-      <div class="label">إجمالي الطلاب</div>
-      <div id="totalStudents" class="value">0</div>
-    </div>
-    <div class="stat">
-      <div class="label">إجمالي الغائبين</div>
-      <div id="totalAbsent" class="value red">0</div>
-    </div>
-    <div class="stat">
-      <div class="label">نسبة الغياب</div>
-      <div id="absentPercent" class="value red">0%</div>
-    </div>
-    <div class="stat">
-      <div class="label">نسبة الحضور</div>
-      <div id="presentPercent" class="value green">0%</div>
-    </div>
-  </div>
-
-  <!-- الرسوم البيانية -->
-  <div class="charts">
-    <div class="chart-box">
-      <h3>نسبة الحضور والغياب</h3>
-      <canvas id="pieChart"></canvas>
-    </div>
-    <div class="chart-box">
-      <h3>عدد الغياب لكل فصل</h3>
-      <canvas id="barChart"></canvas>
-    </div>
-  </div>
-
-  <!-- تفاصيل الفصول -->
-  <div id="cards" class="cards"></div>
-
-</div>
-
-<script>
-/* ========= منطق التاريخ ========= */
-// تاريخ اليوم تلقائيًا
-const today = new Date().toISOString().split("T")[0];
-const dateInput = document.getElementById("reportDate");
-dateInput.value = today;
-
-/* عند تغيير التاريخ → تحديث التقرير */
-dateInput.addEventListener("change", () => {
-  loadReport(dateInput.value);
-});
-
-/* ========= أدوات ========= */
-let pieChart, barChart;
-
-function showError(msg){
-  const e = document.getElementById("errorBox");
-  e.innerText = msg;
-  e.style.display = "block";
-}
-
-async function fetchJson(url){
-  const r = await fetch(url,{cache:"no-store"});
-  const t = await r.text();
-  try{ return JSON.parse(t); }
-  catch{ throw new Error("خطأ في الاستجابة: "+url); }
-}
-
-/* ========= تحميل التقرير ========= */
-async function loadReport(date){
-  document.getElementById("cards").innerHTML="جاري تحميل التقرير...";
-  document.getElementById("errorBox").style.display="none";
-
-  try{
-    const classesRes = await fetchJson("/api/getClasses");
-    const classes = classesRes.classes || [];
-
-    let totalStudents=0, totalAbsent=0;
-    const labels=[], absentData=[];
-    const cards=document.getElementById("cards");
-    cards.innerHTML="";
-
-    for(const cls of classes){
-      const rep = await fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${date}`);
-
-      const t = rep.total ?? 0;
-      const a = rep.absent ?? 0;
-      const p = t - a;
-
-      totalStudents += t;
-      totalAbsent += a;
-
-      labels.push(cls);
-      absentData.push(a);
-
-      const card=document.createElement("div");
-      card.className="card";
-      if(a===0) card.classList.add("ok");
-      if(a>0) card.classList.add("absent");
-
-      card.innerHTML=`
-        <h3>${cls}</h3>
-        <div>👥 الطلاب: <b>${t}</b></div>
-        <div class="green">✅ حاضر: <b>${p}</b></div>
-        <div class="red">❌ غائب: <b>${a}</b></div>
-      `;
-      cards.appendChild(card);
-    }
-
-    document.getElementById("totalStudents").innerText=totalStudents;
-    document.getElementById("totalAbsent").innerText=totalAbsent;
-
-    const absentPct = totalStudents ? ((totalAbsent/totalStudents)*100).toFixed(1) : 0;
-    document.getElementById("absentPercent").innerText=absentPct+"%";
-    document.getElementById("presentPercent").innerText=(100-absentPct).toFixed(1)+"%";
-
-    drawCharts(totalStudents-totalAbsent, totalAbsent, labels, absentData);
-
-  }catch(e){
-    showError(e.message);
-    document.getElementById("cards").innerHTML="";
-  }
-}
-
-/* ========= الرسوم البيانية ========= */
-function drawCharts(present, absent, labels, data){
-  if(pieChart) pieChart.destroy();
-  if(barChart) barChart.destroy();
-
-  pieChart = new Chart(document.getElementById("pieChart"),{
-    type:"pie",
-    data:{
-      labels:["حاضر","غائب"],
-      datasets:[{
-        data:[present, absent],
-        backgroundColor:["#1f8f55","#dc3545"]
-      }]
-    }
-  });
-
-  barChart = new Chart(document.getElementById("barChart"),{
-    type:"bar",
-    data:{
-      labels:labels,
-      datasets:[{
-        label:"عدد الغياب",
-        data:data,
-        backgroundColor:"#dc3545"
-      }]
-    },
-    options:{
-      scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
-    }
-  });
-}
-
-/* ========= تشغيل أولي ========= */
-// عند فتح الصفحة → تقرير اليوم مباشرة
-loadReport(today);
-</script>
-
-</body>
-</html>
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تقارير الغياب</title>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ✅ Chart.js بشكل صحيح -->
+https://cdn.jsdelivr.net/npm/chart.js</script>
 
 <style>
 :root{
@@ -316,3 +96,180 @@ header{
 /* CHARTS */
 .charts{
   display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:20px;
+  margin-bottom:20px;
+}
+.chart-box{
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+/* CLASS CARDS */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:12px;
+}
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid #adb5bd;
+}
+.card.ok{ border-top-color:var(--green); }
+.card.absent{ border-top-color:var(--red); }
+
+/* ERROR */
+#errorBox{
+  display:none;
+  background:#fff3cd;
+  color:#7a5600;
+  padding:12px 16px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+@media print{
+  header, .toolbar, .back-btn{ display:none !important; }
+  body{ background:#fff; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <h2>📊 تقارير الغياب</h2>
+    <button class="back-btn" onclick="location.hrefer>
+
+<div class="container">
+
+  <div id="errorBox"></div>
+
+  <div class="toolbar">
+    <div>
+      📅 التاريخ:
+      <input type="date" id="reportDate">
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ طباعة</button>
+  </div>
+
+  <div class="summary">
+    <div class="stat">
+      <div class="label">إجمالي الطلاب</div>
+      <div id="totalStudents" class="value">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">إجمالي الغائبين</div>
+      <div id="totalAbsent" class="value red">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">نسبة الغياب</div>
+      <div id="absentPercent" class="value red">0%</div>
+    </div>
+    <div class="stat">
+      <div class="label">نسبة الحضور</div>
+      <div id="presentPercent" class="value green">0%</div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box">
+      <h3>نسبة الحضور والغياب</h3>
+      <canvas id="pieChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>عدد الغياب لكل فصل</h3>
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <div id="cards" class="cards"></div>
+
+</div>
+
+<script>
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("reportDate").value = today;
+
+let pieChart, barChart;
+
+async function fetchJson(url){
+  const r = await fetch(url,{cache:"no-store"});
+  const t = await r.text();
+  return JSON.parse(t);
+}
+
+async function loadReport(date){
+  const classesRes = await fetchJson("/api/getClasses");
+  const classes = classesRes.classes || [];
+
+  let totalStudents=0, totalAbsent=0;
+  const labels=[], absentData=[];
+  const cards=document.getElementById("cards");
+  cards.innerHTML="";
+
+  for(const cls of classes){
+    const rep = await fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${date}`);
+
+    const t = rep.total ?? 0;
+    const a = rep.absent ?? 0;
+    const p = t - a;
+
+    totalStudents += t;
+    totalAbsent += a;
+
+    labels.push(cls);
+    absentData.push(a);
+
+    const card=document.createElement("div");
+    card.className="card";
+    if(a===0) card.classList.add("ok");
+    if(a>0) card.classList.add("absent");
+
+    card.innerHTML=`
+      <h3>${cls}</h3>
+      <div>👥 الطلاب: <b>${t}</b></div>
+      <div class="green">✅ حاضر: <b>${p}</b></div>
+      <div class="red">❌ غائب: <b>${a}</b></div>
+    `;
+    cards.appendChild(card);
+  }
+
+  document.getElementById("totalStudents").innerText=totalStudents;
+  document.getElementById("totalAbsent").innerText=totalAbsent;
+
+  const absentPct = totalStudents ? ((totalAbsent/totalStudents)*100).toFixed(1) : 0;
+  document.getElementById("absentPercent").innerText=absentPct+"%";
+  document.getElementById("presentPercent").innerText=(100-absentPct).toFixed(1)+"%";
+
+  if(pieChart) pieChart.destroy();
+  if(barChart) barChart.destroy();
+
+  pieChart = new Chart(document.getElementById("pieChart"),{
+    type:"pie",
+    data:{
+      labels:["حاضر","غائب"],
+      datasets:[{ data:[totalStudents-totalAbsent,totalAbsent], backgroundColor:["#1f8f55","#dc3545"] }]
+    }
+  });
+
+  barChart = new Chart(document.getElementById("barChart"),{
+    type:"bar",
+    data:{ labels:labels, datasets:[{ label:"عدد الغياب", data:absentData, backgroundColor:"#dc3545" }] },
+    options:{ scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+document.getElementById("reportDate").onchange = e => loadReport(e.target.value);
+loadReport(today);
+</script>
+
+</body>
+</html>
+``
