@@ -1,66 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الغياب</title>
-
-<style>
-:root{
-  --green:#1f8f55;
-  --red:#dc3545;
-  --gray:#adb5bd;
-  --bg:#f4f6f5;
-  --card:#ffffff;
-}
-
-body{
-  margin:0;
-  font-family:'Cairo',Arial,sans-serif;
-  background:var(--bg);
-  color:#2c3e50;
-}
-
-/* HEADER */
-header{
-  background:#ffffff;
-  border-bottom:3px solid var(--green);
-}
-.header-inner{
-  max-width:1100px;
-  margin:auto;
-  padding:14px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.school{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.school img{ height:60px; }
-.school-text strong{ font-size:17px; }
-
-.reports-btn{
-  background:var(--green);
-  color:white;
-  border:none;
-  padding:10px 16px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* GRID */
-section-title{
-  font-size:20px;
-  font-weight:bold;
-}
-
-.grade-title{
-  background:#e1f3ea;
-  padding:10px;
-  border-right:6px solid var(--green);
+<html lang="ar"  border-right:6px solid var(--green);<html lang="ar" dir="rtl">
   border-radius:10px;
   margin:25px 0 10px;
   font-weight:bold;
@@ -70,7 +9,7 @@ section-title{
 .classes-grid{
   display:grid;
   gap:15px;
-  grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
 }
 
 .class-card{
@@ -86,6 +25,11 @@ section-title{
 .class-card.ok{ border-top-color:var(--green); }
 .class-card.absent{ border-top-color:var(--red); }
 
+.class-info{
+  margin:4px 0;
+  font-size:14px;
+}
+
 .card-btn{
   width:100%;
   background:var(--green);
@@ -93,11 +37,11 @@ section-title{
   padding:10px;
   border:none;
   border-radius:10px;
-  margin-top:10px;
+  margin-top:8px;
   cursor:pointer;
 }
 
-/* ATTENDANCE PAGE */
+/* ATTENDANCE */
 .hidden{ display:none; }
 
 .attendance{
@@ -105,7 +49,6 @@ section-title{
   padding:16px;
   border-radius:14px;
   box-shadow:0 2px 8px rgba(0,0,0,.08);
-  margin-top:20px;
 }
 
 .student{
@@ -152,7 +95,7 @@ section-title{
 <header>
   <div class="header-inner">
     <div class="school">
-      <img src="assets/moe-logo.png">
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
@@ -160,9 +103,8 @@ section-title{
       </div>
     </div>
 
-    <button class="reports-btn" onclick="location.hrefiv id="errorBox"></div>
-
-<div class="container">
+    <!-- ✅ زر التقارير العام (شغّال) -->
+    <button class="reports-btn" onclick="location.href='reports.html'="container">
   <div id="classesContainer"></div>
 
   <div id="attendanceView" class="attendance hidden">
@@ -177,7 +119,6 @@ section-title{
 </div>
 
 <script>
-/* ✅ ترتيب الفصول */
 function classOrder(name){
   let grade = 99;
   if(name.includes("أول")) grade = 1;
@@ -186,39 +127,41 @@ function classOrder(name){
 
   const sec = name.match(/\((.*?)\)/);
   const letter = sec ? sec[1] : "";
-  const letters="أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
+  const letters = "أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
   const letterOrder = letters.indexOf(letter) >= 0 ? letters.indexOf(letter) : 999;
 
-  return grade*100 + letterOrder;
+  return grade * 100 + letterOrder;
 }
 
 async function fetchJson(url){
-  let r = await fetch(url);
-  let t = await r.text();
+  const r = await fetch(url,{cache:"no-store"});
+  const t = await r.text();
   try{ return JSON.parse(t); }
-  catch{ throw new Error("استجابة غير صالحة: "+url); }
+  catch{ throw new Error("خطأ في API"); }
 }
+
+let selectedClass = null;
+let absentees = [];
 
 async function loadDashboard(){
   const container = document.getElementById("classesContainer");
-  container.innerHTML = "جاري التحميل...";
+  container.innerHTML = "جاري تحميل الفصول...";
 
   try{
     const classesRes = await fetchJson("/api/getClasses");
-    const classes = classesRes.classes.sort((a,b)=> classOrder(a)-classOrder(b));
+    const classes = classesRes.classes.sort((a,b)=>classOrder(a)-classOrder(b));
 
     container.innerHTML = "";
 
     const grades = {
       1: "أول متوسط",
       2: "ثاني متوسط",
-      3: "ثالث متوسط",
+      3: "ثالث متوسط"
     };
 
     for(const [num,title] of Object.entries(grades)){
-
-      const gradeClasses = classes.filter(c => c.includes(title.split(" ")[0]));
-      if(gradeClasses.length === 0) continue;
+      const list = classes.filter(c=>c.includes(title.split(" ")[0]));
+      if(!list.length) continue;
 
       const t = document.createElement("div");
       t.className = "grade-title";
@@ -228,62 +171,54 @@ async function loadDashboard(){
       const grid = document.createElement("div");
       grid.className = "classes-grid";
 
-      for(const cls of gradeClasses){
-
+      for(const cls of list){
         const [studentsRes, reportRes] = await Promise.all([
           fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`),
           fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${new Date().toISOString().split("T")[0]}`)
         ]);
 
         const total = studentsRes.students.length;
-        const absent = reportRes.absent ?? null;
+        const absent = reportRes.absent ?? 0;
 
         const card = document.createElement("div");
         card.className = "class-card";
-
         if(absent === 0) card.classList.add("ok");
         if(absent > 0) card.classList.add("absent");
 
         card.innerHTML = `
           <h3>${cls}</h3>
           <div class="class-info">👥 عدد الطلاب: <b>${total}</b></div>
-          <div class="class-info">❌ الغياب: <b>${absent ?? "—"}</b></div>
-
+          <div class="class-info">❌ الغياب اليوم: <b>${absent}</b></div>
           <button class="card-btn" onclick="openClass('${cls}')">📝 تسجيل الغياب</button>
-          <button class="card-btn" onclick="location.href='reports.html?صل</button>
-        `;
-
-        grid.appendChild(card);
+          <button class="card-btn" onclick="location.href='reports.html?class=${encodeURIComponent(cls)}'ppendChild(card);
       }
 
       container.appendChild(grid);
     }
 
   }catch(e){
-    document.getElementById("errorBox").innerText = e.message;
-    document.getElementById("errorBox").style.display = "block";
+    const err = document.getElementById("errorBox");
+    err.innerText = e.message;
+    err.style.display = "block";
   }
 }
-
-let selectedClass = null;
-let absentees = [];
 
 async function openClass(cls){
   selectedClass = cls;
   absentees = [];
 
-  document.getElementById("classesContainer").style.display = "none";
+  document.getElementById("classesContainer").style.display="none";
   document.getElementById("attendanceView").classList.remove("hidden");
   document.getElementById("classTitle").innerText = cls;
 
   const list = document.getElementById("studentsList");
-  list.innerHTML = "جاري التحميل...";
+  list.innerHTML="جاري التحميل...";
 
   const data = await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
-  list.innerHTML = "";
+  list.innerHTML="";
 
   data.students.forEach(s=>{
-    const row = document.createElement("div");
+    const row=document.createElement("div");
     row.className="student";
 
     const name=document.createElement("span");
@@ -301,7 +236,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees = absentees.filter(n => n !== s.Name);
+        absentees = absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -333,8 +268,69 @@ async function saveAttendance(){
 }
 
 document.addEventListener("DOMContentLoaded",loadDashboard);
-
 </script>
 
 </body>
 </html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الغياب</title>
+
+<style>
+:root{
+  --green:#1f8f55;
+  --red:#dc3545;
+  --gray:#adb5bd;
+  --bg:#f4f6f5;
+  --card:#ffffff;
+}
+
+body{
+  margin:0;
+  font-family:'Cairo',Arial,sans-serif;
+  background:var(--bg);
+  color:#2c3e50;
+}
+
+/* HEADER */
+header{
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
+}
+.header-inner{
+  max-width:1100px;
+  margin:auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.school{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school img{ height:60px; }
+.school-text strong{ font-size:17px; }
+
+.reports-btn{
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:10px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+/* CONTENT */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+
+.grade-title{
+  background:#e1f3ea;
+  padding:10px;
