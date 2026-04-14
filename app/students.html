@@ -23,7 +23,7 @@ body{
 
 /* HEADER */
 header{
-  background:#fff;
+  background:#ffffff;
   border-bottom:3px solid var(--green);
 }
 .header-inner{
@@ -31,16 +31,20 @@ header{
   margin:auto;
   padding:14px 16px;
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
 }
 .school{
   display:flex;
   align-items:center;
   gap:12px;
 }
-.school img{ height:60px; }
-.school-text strong{ font-size:17px; }
+.school img{
+  height:60px;
+}
+.school-text strong{
+  font-size:17px;
+}
 
 .reports-btn{
   background:var(--green);
@@ -49,26 +53,6 @@ header{
   padding:10px 16px;
   border-radius:10px;
   cursor:pointer;
-}
-
-/* SMART COUNTER */
-.counter{
-  max-width:1100px;
-  margin:15px auto;
-  padding:14px;
-  background:#e9f7ef;
-  border-right:6px solid var(--green);
-  border-radius:12px;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:10px;
-  font-weight:bold;
-}
-.counter div{
-  background:white;
-  padding:10px;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
 /* CONTENT */
@@ -104,6 +88,11 @@ header{
 .class-card.ok{ border-top-color:var(--green); }
 .class-card.absent{ border-top-color:var(--red); }
 
+.class-info{
+  margin:4px 0;
+  font-size:14px;
+}
+
 .card-btn{
   width:100%;
   background:var(--green);
@@ -131,6 +120,7 @@ header{
   padding:10px 0;
   border-bottom:1px solid #eee;
 }
+
 .status-btn{
   padding:6px 14px;
   border:none;
@@ -150,6 +140,16 @@ header{
 }
 .save-btn{ background:var(--green); color:white; }
 .back-btn{ background:#6c757d; color:white; }
+
+#errorBox{
+  display:none;
+  background:#fff3cd;
+  border-right:6px solid #c9ae6e;
+  margin:15px 0;
+  padding:10px;
+  border-radius:10px;
+  color:#6f5200;
+}
 </style>
 </head>
 
@@ -158,21 +158,15 @@ header{
 <header>
   <div class="header-inner">
     <div class="school">
-      assets/moe-logo.png
+      <img src="assets/moe-logo.png" alt="شعار وزارة التعليم">
       <div class="school-text">
         وزارة التعليم<br>
         إدارة التعليم بمنطقة الباحة<br>
         <strong>متوسطة العسلة</strong>
       </div>
     </div>
-    <button class="reports-btn" onclick="location.href='reports.htmlCOUNTER -->
-<div class="counter">
-  <div>🏫 إجمالي الفصول: <span id="cClasses">0</span></div>
-  <div>👥 إجمالي الطلاب: <span id="cStudents">0</span></div>
-  <div>❌ غياب اليوم: <span id="cAbsent">0</span></div>
-</div>
 
-<div class="container">
+    <button class="reports-btn" onclick="location.href='reports.html">
   <div id="classesContainer"></div>
 
   <div id="attendanceView" class="attendance hidden">
@@ -187,102 +181,104 @@ header{
 </div>
 
 <script>
-const today = new Date().toISOString().split("T")[0];
-
 function classOrder(name){
-  let g=99;
-  if(name.includes("أول")) g=1;
-  else if(name.includes("ثاني")) g=2;
-  else if(name.includes("ثالث")) g=3;
+  let grade = 99;
+  if(name.includes("أول")) grade = 1;
+  else if(name.includes("ثاني")) grade = 2;
+  else if(name.includes("ثالث")) grade = 3;
 
-  const sec=name.match(/\((.*?)\)/);
-  const letter=sec?sec[1]:"";
-  const letters="أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
-  const l=letters.indexOf(letter)>=0?letters.indexOf(letter):999;
+  const sec = name.match(/\((.*?)\)/);
+  const letter = sec ? sec[1] : "";
+  const letters = "أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
+  const letterOrder = letters.indexOf(letter) >= 0 ? letters.indexOf(letter) : 999;
 
-  return g*100+l;
+  return grade * 100 + letterOrder;
 }
 
 async function fetchJson(url){
-  const r=await fetch(url,{cache:"no-store"});
-  const t=await r.text();
-  try{return JSON.parse(t);}catch{throw new Error("خطأ API");}
+  const r = await fetch(url,{cache:"no-store"});
+  const t = await r.text();
+  try{ return JSON.parse(t); }
+  catch{ throw new Error("خطأ في API"); }
 }
 
-let selectedClass=null;
-let absentees=[];
+let selectedClass = null;
+let absentees = [];
 
 async function loadDashboard(){
-  const container=document.getElementById("classesContainer");
-  container.innerHTML="جاري التحميل...";
+  const container = document.getElementById("classesContainer");
+  container.innerHTML = "جاري تحميل الفصول...";
 
-  let totalStudents=0,totalAbsent=0;
+  try{
+    const classesRes = await fetchJson("/api/getClasses");
+    const classes = classesRes.classes.sort((a,b)=>classOrder(a)-classOrder(b));
 
-  const classesRes=await fetchJson("/api/getClasses");
-  const classes=classesRes.classes.sort((a,b)=>classOrder(a)-classOrder(b));
+    container.innerHTML = "";
 
-  document.getElementById("cClasses").innerText=classes.length;
+    const grades = {
+      1: "أول متوسط",
+      2: "ثاني متوسط",
+      3: "ثالث متوسط"
+    };
 
-  container.innerHTML="";
+    for(const [num,title] of Object.entries(grades)){
+      const list = classes.filter(c=>c.includes(title.split(" ")[0]));
+      if(!list.length) continue;
 
-  const grades={1:"أول متوسط",2:"ثاني متوسط",3:"ثالث متوسط"};
+      const t = document.createElement("div");
+      t.className = "grade-title";
+      t.innerText = title;
+      container.appendChild(t);
 
-  for(const [num,title] of Object.entries(grades)){
-    const list=classes.filter(c=>c.includes(title.split(" ")[0]));
-    if(!list.length) continue;
+      const grid = document.createElement("div");
+      grid.className = "classes-grid";
 
-    const t=document.createElement("div");
-    t.className="grade-title";
-    t.innerText=title;
-    container.appendChild(t);
+      for(const cls of list){
+        const [studentsRes, reportRes] = await Promise.all([
+          fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`),
+          fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${new Date().toISOString().split("T")[0]}`)
+        ]);
 
-    const grid=document.createElement("div");
-    grid.className="classes-grid";
+        const total = studentsRes.students.length;
+        const absent = reportRes.absent ?? 0;
 
-    for(const cls of list){
-      const [s,r]=await Promise.all([
-        fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`),
-        fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${today}`)
-      ]);
+        const card = document.createElement("div");
+        card.className = "class-card";
+        if(absent === 0) card.classList.add("ok");
+        if(absent > 0) card.classList.add("absent");
 
-      const students=s.students.length;
-      const absent=r.absent??0;
+        card.innerHTML = `
+          <h3>${cls}</h3>
+          <div class="class-info">👥 عدد الطلاب: <b>${total}</b></div>
+          <div class="class-info">❌ الغياب اليوم: <b>${absent}</b></div>
+          <button class="card-btn" onclick="openClass('${cls}')">📝 تسجيل الغياب</button>
+        `;
 
-      totalStudents+=students;
-      totalAbsent+=absent;
+        grid.appendChild(card);
+      }
 
-      const card=document.createElement("div");
-      card.className="class-card";
-      if(absent===0) card.classList.add("ok");
-      if(absent>0) card.classList.add("absent");
-
-      card.innerHTML=`
-        <h3>${cls}</h3>
-        <div>👥 الطلاب: <b>${students}</b></div>
-        <div>❌ الغياب: <b>${absent}</b></div>
-        <button class="card-btn" onclick="openClass('${cls}')">📝 تسجيل الغياب</button>
-        <button class="card-btn" onclick="location.href='reports.html?class=${encodeURIComponent(clsChild(card);
+      container.appendChild(grid);
     }
 
-    container.appendChild(grid);
+  }catch(e){
+    const err = document.getElementById("errorBox");
+    err.innerText = e.message;
+    err.style.display = "block";
   }
-
-  document.getElementById("cStudents").innerText=totalStudents;
-  document.getElementById("cAbsent").innerText=totalAbsent;
 }
 
 async function openClass(cls){
-  selectedClass=cls;
-  absentees=[];
+  selectedClass = cls;
+  absentees = [];
 
   document.getElementById("classesContainer").style.display="none";
   document.getElementById("attendanceView").classList.remove("hidden");
-  document.getElementById("classTitle").innerText=cls;
+  document.getElementById("classTitle").innerText = cls;
 
-  const list=document.getElementById("studentsList");
+  const list = document.getElementById("studentsList");
   list.innerHTML="جاري التحميل...";
 
-  const data=await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  const data = await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
   list.innerHTML="";
 
   data.students.forEach(s=>{
@@ -304,7 +300,7 @@ async function openClass(cls){
       }else{
         btn.classList.replace("absent","present");
         btn.innerText="حاضر";
-        absentees=absentees.filter(n=>n!==s.Name);
+        absentees = absentees.filter(n=>n!==s.Name);
       }
     };
 
@@ -325,14 +321,14 @@ async function saveAttendance(){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       className:selectedClass,
-      date:today,
+      date:new Date().toISOString().split("T")[0],
       absentees
     })
   });
 
   alert("✅ تم حفظ الغياب");
   backToClasses();
-  loadDashboard(); // ✅ تحديث تلقائي للعداد
+  loadDashboard();
 }
 
 document.addEventListener("DOMContentLoaded",loadDashboard);
