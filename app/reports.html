@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تقارير الغياب</title>
 
-<!-- Chart.js -->
+<!-- ✅ Chart.js (صحيح) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -35,14 +35,10 @@ header{
   max-width:1100px;
   margin:auto;
   padding:14px 16px;
-  position:relative;
-  text-align:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-.header-inner h2{
-  margin:0;
-}
-
-/* BACK BUTTON */
 .back-btn{
   background:var(--green);
   color:white;
@@ -51,15 +47,6 @@ header{
   border-radius:10px;
   cursor:pointer;
   font-size:14px;
-  white-space:nowrap;
-}
-
-/* زر الرجوع العلوي */
-.back-top{
-  position:absolute;
-  right:16px;
-  top:50%;
-  transform:translateY(-50%);
 }
 
 /* CONTAINER */
@@ -162,7 +149,9 @@ header{
 <header>
   <div class="header-inner">
     <h2>📊 تقارير الغياب</h2>
-    <button class="back-btn back-top" onclick="location.href='students.html'id="errorBox"></div>
+    <button class="back-btn" onclick="location.href='students.html'ainer">
+
+  <div id="errorBox"></div>
 
   <div class="toolbar">
     <div>
@@ -204,10 +193,9 @@ header{
 
   <div id="cards" class="cards"></div>
 
-  <!-- زر الرجوع السفلي -->
+  <!-- ✅ زر رجوع سفلي (آمن) -->
   <div style="margin-top:30px; text-align:center;">
-    <button class="back-btn" onclick="location.href='studentson>
-  </div>
+    <button class="back-btn" onclick="location.href='students.html'</div>
 
 </div>
 
@@ -300,3 +288,4 @@ loadReport(today);
 
 </body>
 </html>
+``
