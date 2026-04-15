@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تقارير الغياب</title>
 
-<!-- Chart.js -->
+<!-- Chart.js (صحيح) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -23,7 +23,7 @@ body{
   color:#2c3e50;
 }
 
-/* HEADER + STICKY */
+/* HEADER */
 header{
   background:#ffffff;
   border-bottom:3px solid var(--green);
@@ -151,7 +151,7 @@ header{
 <header>
   <div class="header-inner">
     <h2>📊 تقارير الغياب</h2>
-    <button class="back-btn" onclick="location.href='students.htmlclass="container">
+    <button class="back-btn" onclick="location.href='students<div class="container">
 
   <div id="errorBox"></div>
 
@@ -259,13 +259,23 @@ async function loadReport(date){
     type:"pie",
     data:{
       labels:["حاضر","غائب"],
-      datasets:[{ data:[totalStudents-totalAbsent,totalAbsent], backgroundColor:["#1f8f55","#dc3545"] }]
+      datasets:[{
+        data:[totalStudents-totalAbsent,totalAbsent],
+        backgroundColor:["#1f8f55","#dc3545"]
+      }]
     }
   });
 
   barChart = new Chart(document.getElementById("barChart"),{
     type:"bar",
-    data:{ labels:labels, datasets:[{ label:"عدد الغياب", data:absentData, backgroundColor:"#dc3545" }] },
+    data:{
+      labels:labels,
+      datasets:[{
+        label:"عدد الغياب",
+        data:absentData,
+        backgroundColor:"#dc3545"
+      }]
+    },
     options:{ scales:{ y:{ beginAtZero:true } } }
   });
 }
