@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تقارير الغياب</title>
 
-<!-- ✅ Chart.js (صحيح) -->
+<!-- ✅ Chart.js الصحيح -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -23,34 +23,31 @@ body{
   color:#2c3e50;
 }
 
-/* HEADER */
-header{
-.back-btn{
+/* ✅ زر الرجوع الثابت */
+.back-fixed{
+  position:fixed;
+  top:16px;
+  left:16px;
+  z-index:9999;
   background:#1f8f55;
   color:white;
-  border:none;
   padding:10px 16px;
   border-radius:10px;
-  cursor:pointer;
+  text-decoration:none;
   font-size:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
+
+/* HEADER */
+header{
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
 }
 .header-inner{
   max-width:1100px;
   margin:auto;
   padding:14px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.back-btn{
-  background:var(--green);
-  color:white;
-  border:none;
-  padding:10px 18px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:14px;
+  text-align:center;
 }
 
 /* CONTAINER */
@@ -142,7 +139,7 @@ header{
 }
 
 @media print{
-  header, .toolbar, .back-btn{ display:none !important; }
+  .back-fixed, .toolbar{ display:none !important; }
   body{ background:#fff; }
 }
 </style>
@@ -150,11 +147,18 @@ header{
 
 <body>
 
+<!-- ✅ زر الرجوع (مستقل – مضمون الظهور) -->
+<a href="students.html" class="back-fixed">
+  ⬅️ الرجوع إلى تسجيل الغياب
+</a>
+
 <header>
   <div class="header-inner">
     <h2>📊 تقارير الغياب</h2>
-    <button class="back-btn" onclick="location.href='students.html'ainer">
+  </div>
+</header>
 
+<div class="container">
 
   <div id="errorBox"></div>
 
@@ -197,11 +201,6 @@ header{
   </div>
 
   <div id="cards" class="cards"></div>
-
-  <!-- ✅ زر رجوع سفلي (آمن) -->
-  <div style="margin-top:30px; text-align:center;">
-    <button class="back-btn" onclick="location.href='students.html'</button></div>
-     
 
 </div>
 
@@ -294,4 +293,3 @@ loadReport(today);
 
 </body>
 </html>
-``
