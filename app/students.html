@@ -11,7 +11,339 @@
   --red:#dc3545;
   --gray:#adb5bd;
   --bg:#f4f6f5;
+}<!DOCTYPE html>
+<html lang="<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الغياب</title>
+
+<style>
+:root{
+  --green:#1f8f55;
+  --red:#dc3545;
+  --gray:#adb5bd;
+  --bg:#f4f6f5;
+  --card:#ffffff;
 }
+
+body{
+  margin:0;
+  font-family:'Cairo',Arial,sans-serif;
+  background:var(--bg);
+  color:#2c3e50;
+}
+
+/* ✅ container مضاف */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+
+/* HEADER */
+header{
+  background:#ffffff;
+  border-bottom:3px solid var(--green);
+}
+.header-inner{
+  max-width:1100px;
+  margin:auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.school{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school img{ height:60px; }
+.school-text strong{ font-size:17px; }
+
+.reports-btn{
+  background:var(--green);
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* GRID */
+.section-title{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.grade-title{
+  background:#e1f3ea;
+  padding:10px;
+  border-right:6px solid var(--green);
+  border-radius:10px;
+  margin:25px 0 10px;
+  font-weight:bold;
+  font-size:19px;
+}
+
+.classes-grid{
+  display:grid;
+  gap:15px;
+  grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+}
+
+.class-card{
+  background:white;
+  padding:16px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-top:6px solid var(--gray);
+  transition:0.2s;
+}
+.class-card:hover{ transform:translateY(-4px); }
+
+.class-card.ok{ border-top-color:var(--green); }
+.class-card.absent{ border-top-color:var(--red); }
+
+.card-btn{
+  width:100%;
+  background:var(--green);
+  color:white;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+/* ATTENDANCE PAGE */
+.hidden{ display:none; }
+
+.attendance{
+  background:white;
+  padding:16px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  margin-top:20px;
+}
+
+.student{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+
+.status-btn{
+  padding:6px 14px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+}
+.present{ background:#d1e7dd; color:#0f5132; }
+.absent{ background:#f8d7da; color:#842029; }
+
+.actions button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  margin-top:10px;
+  cursor:pointer;
+}
+.save-btn{ background:var(--green); color:white; }
+.back-btn{ background:#6c757d; color:white; }
+
+#errorBox{
+  display:none;
+  background:#fff3cd;
+  border-right:6px solid #c9ae6e;
+  margin:15px 0;
+  padding:10px;
+  border-radius:10px;
+  color:#6f5200;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="school">
+      <img src="assets/moe-logo.png">
+      <div class="school-text">
+        وزارة التعليم<br>
+        إدارة التعليم بمنطقة الباحة<br>
+        <strong>متوسطة العسلة</strong><br>
+        <strong>تصميم أ/عبدالله المنمص</strong>
+      </div>
+    </div>
+
+    <!-- ✅ زر التقارير مصحح -->
+    <button class="reports-btn"
+      onclick="location.href='id="errorBox"></div>
+
+<div class="container">
+  <div id="classesContainer"></div>
+
+  <div id="attendanceView" class="attendance hidden">
+    <h2 id="classTitle"></h2>
+    <div id="studentsList"></div>
+
+    <div class="actions">
+      <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+      <button class="back-btn" onclick="backToClasses()">⬅️ رجوع</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ✅ ترتيب الفصول */
+function classOrder(name){
+  let grade = 99;
+  if(name.includes("أول")) grade = 1;
+  else if(name.includes("ثاني")) grade = 2;
+  else if(name.includes("ثالث")) grade = 3;
+
+  const sec = name.match(/\((.*?)\)/);
+  const letter = sec ? sec[1] : "";
+  const letters="أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
+  const letterOrder = letters.indexOf(letter) >= 0 ? letters.indexOf(letter) : 999;
+
+  return grade*100 + letterOrder;
+}
+
+async function fetchJson(url){
+  const r = await fetch(url);
+  const t = await r.text();
+  try{ return JSON.parse(t); }
+  catch{ throw new Error("استجابة غير صالحة: "+url); }
+}
+
+async function loadDashboard(){
+  const container = document.getElementById("classesContainer");
+  container.innerHTML = "جاري التحميل...";
+
+  try{
+    const classesRes = await fetchJson("/api/getClasses");
+    const classes = classesRes.classes.sort((a,b)=>classOrder(a)-classOrder(b));
+    container.innerHTML = "";
+
+    const grades = {
+      1:"أول متوسط",
+      2:"ثاني متوسط",
+      3:"ثالث متوسط"
+    };
+
+    for(const title of Object.values(grades)){
+      const gradeClasses = classes.filter(c=>c.includes(title.split(" ")[0]));
+      if(!gradeClasses.length) continue;
+
+      const t=document.createElement("div");
+      t.className="grade-title";
+      t.innerText=title;
+      container.appendChild(t);
+
+      const grid=document.createElement("div");
+      grid.className="classes-grid";
+
+      for(const cls of gradeClasses){
+        const studentsRes=await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+        const reportRes=await fetchJson(`/api/getAttendanceReport?class=${encodeURIComponent(cls)}&date=${new Date().toISOString().split("T")[0]}`);
+
+        const card=document.createElement("div");
+        card.className="class-card";
+
+        if(reportRes.absent===0) card.classList.add("ok");
+        if(reportRes.absent>0) card.classList.add("absent");
+
+        card.innerHTML=`
+          <h3>${cls}</h3>
+          👥 عدد الطلاب: <b>${studentsRes.students.length}</b><br>
+          ❌ الغياب: <b>${reportRes.absent ?? "—"}</b>
+
+          <button class="card-btn" onclick="openClass('${cls}')">📝 تسجيل الغياب</button>
+          <button class="card-btn"
+            onclick="location.href='reports.html?class=${encodeURIComponent  `;
+        grid.appendChild(card);
+      }
+      container.appendChild(grid);
+    }
+
+  }catch(e){
+    errorBox.innerText=e.message;
+    errorBox.style.display="block";
+  }
+}
+
+let selectedClass=null;
+let absentees=[];
+
+async function openClass(cls){
+  selectedClass=cls;
+  absentees=[];
+  classesContainer.style.display="none";
+  attendanceView.classList.remove("hidden");
+  classTitle.innerText=cls;
+
+  const data=await fetchJson(`/api/getStudents?class=${encodeURIComponent(cls)}`);
+  studentsList.innerHTML="";
+
+  data.students.forEach(s=>{
+    const row=document.createElement("div");
+    row.className="student";
+
+    const name=document.createElement("span");
+    name.innerText=s.Name;
+
+    const btn=document.createElement("button");
+    btn.className="status-btn present";
+    btn.innerText="حاضر";
+
+    btn.onclick=()=>{
+      if(btn.classList.contains("present")){
+        btn.classList.replace("present","absent");
+        btn.innerText="غائب";
+        absentees.push(s.Name);
+      }else{
+        btn.classList.replace("absent","present");
+        btn.innerText="حاضر";
+        absentees=absentees.filter(x=>x!==s.Name);
+      }
+    };
+
+    row.append(name,btn);
+    studentsList.appendChild(row);
+  });
+}
+
+function backToClasses(){
+  attendanceView.classList.add("hidden");
+  classesContainer.style.display="block";
+}
+
+async function saveAttendance(){
+  await fetch("/api/saveAttendance",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      className:selectedClass,
+      date:new Date().toISOString().split("T")[0],
+      absentees
+    })
+  });
+
+  alert("✅ تم حفظ الغياب");
+  backToClasses();
+  loadDashboard();
+}
+
+document.addEventListener("DOMContentLoaded",loadDashboard);
+</script>
+
+</body>
+</html>
 
 body{
   margin:0;
