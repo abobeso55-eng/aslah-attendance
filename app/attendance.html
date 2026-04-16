@@ -42,10 +42,75 @@
             transition: 0.2s;
         }
 
-        .back-btn:hover { background: #000; }
+        .back-btn:hover {
+            background: #000;
+        }
 
         .class-name {
             font-size: 1.5rem;
             margin-bottom: 20px;
             font-weight: 700;
+        }
 
+        .student {
+            background: white;
+            padding: 14px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+        }
+
+        .status-btn {
+            border: none;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .present {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .absent {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: none;
+            background: #27ae60;
+            color: white;
+            margin-top: 25px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    تسجيل الغياب
+</header>
+
+<div class="container">
+
+    <a href="attendance.html" class="back-btn">⬅️ رجوع</a>
+
+    <div class="class-name" id="classTitle">الفصل</div>
+
+    <div id="studentsList"></div>
+
+    <button class="save-btn" onclick="saveAttendance()">💾 حفظ الغياب</button>
+</div>
+
+<script>
+let absentees = [];
