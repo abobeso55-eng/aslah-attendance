@@ -1,5 +1,6 @@
 {
   "app_location": "main/app",
   "api_location": "main/api",
-  "output_location": ""
+  "output_location": "",
+  "routes": []
 }
