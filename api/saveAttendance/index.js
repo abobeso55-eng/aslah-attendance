@@ -7,8 +7,10 @@ module.exports = async function (context, req) {
       ? JSON.parse(req.body)
       : req.body;
 
-    const { className, date, absentees } = body;
+    // ✅ استلام البيانات بالأسماء الصحيحة
+    const { class: className, date, absentees } = body;
 
+    // ✅ تحقق من البيانات
     if (!className || !date || !Array.isArray(absentees)) {
       context.res = {
         status: 400,
@@ -21,6 +23,7 @@ module.exports = async function (context, req) {
       return;
     }
 
+    // ✅ الاتصال بقاعدة البيانات
     const pool = await sql.connect({
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
@@ -32,7 +35,7 @@ module.exports = async function (context, req) {
       }
     });
 
-    // ✅ حذف تسجيلات الغياب السابقة لنفس اليوم والفصل
+    // ✅ حذف تسجيلات الغياب السابقة لنفس الفصل والتاريخ
     await pool.request()
       .input("class", sql.NVarChar, className)
       .input("date", sql.Date, date)
@@ -54,6 +57,7 @@ module.exports = async function (context, req) {
         `);
     }
 
+    // ✅ رد النجاح
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
