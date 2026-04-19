@@ -5,8 +5,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["post"],
-      "route": "saveAttendance"
+      "methods": ["post"]
     },
     {
       "type": "http",
